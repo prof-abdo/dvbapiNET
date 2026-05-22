@@ -21,6 +21,7 @@ namespace dvbapiNet.DvbViewer
         private TextBox _TxtWebhookUrl;
         private CheckBox _ChkPretty;
         private CheckBox _ChkDump;
+        private CheckBox _ChkDark;
 
         // Status tab
         private Label _LblConn;
@@ -43,11 +44,67 @@ namespace dvbapiNet.DvbViewer
         private Button _BtnCancel;
         private Label _LblStatus;
 
+        // Theme
+        private static readonly Color _DarkBg = Color.FromArgb(30, 30, 30);
+        private static readonly Color _DarkBg2 = Color.FromArgb(45, 45, 48);
+        private static readonly Color _DarkFg = Color.FromArgb(220, 220, 220);
+        private static readonly Color _DarkAccent = Color.FromArgb(78, 201, 176);
+        private bool _DarkMode;
+
         public ConfigDialog()
         {
+            try { Globals.Config.Get("ui", "dark", ref _DarkMode); } catch { }
             BuildUi();
             LoadValues();
+            if (_DarkMode) ApplyDarkTheme(this);
             RefreshStatus(null, null);
+        }
+
+        private static void ApplyDarkTheme(Control root)
+        {
+            if (root is Form) { root.BackColor = _DarkBg; root.ForeColor = _DarkFg; }
+            foreach (Control c in root.Controls)
+            {
+                if (c is GroupBox)
+                {
+                    c.BackColor = _DarkBg; c.ForeColor = _DarkAccent;
+                }
+                else if (c is TabControl tc)
+                {
+                    foreach (TabPage tp in tc.TabPages)
+                    {
+                        tp.BackColor = _DarkBg; tp.ForeColor = _DarkFg;
+                        ApplyDarkTheme(tp);
+                    }
+                    continue;
+                }
+                else if (c is TextBox)
+                {
+                    c.BackColor = _DarkBg2; c.ForeColor = _DarkFg;
+                    (c as TextBox).BorderStyle = BorderStyle.FixedSingle;
+                }
+                else if (c is ListView lv)
+                {
+                    lv.BackColor = _DarkBg2; lv.ForeColor = _DarkFg;
+                }
+                else if (c is Button)
+                {
+                    c.BackColor = Color.FromArgb(60, 60, 65); c.ForeColor = _DarkFg;
+                    (c as Button).FlatStyle = FlatStyle.Flat;
+                    (c as Button).FlatAppearance.BorderColor = Color.FromArgb(80, 80, 85);
+                }
+                else if (c is CheckBox || c is Label)
+                {
+                    c.BackColor = Color.Transparent; c.ForeColor = _DarkFg;
+                }
+                else if (c is LinkLabel ll)
+                {
+                    ll.BackColor = Color.Transparent;
+                    ll.LinkColor = Color.FromArgb(86, 156, 214);
+                    ll.ActiveLinkColor = _DarkAccent;
+                }
+                if (c.HasChildren) ApplyDarkTheme(c);
+            }
         }
 
         private void BuildUi()
@@ -132,6 +189,8 @@ namespace dvbapiNet.DvbViewer
             grpLog.Controls.Add(_ChkPretty);
             _ChkDump = new CheckBox { Text = "Dump stream TS", Left = ctrlX, Top = 20 + rowH * 2, AutoSize = true };
             grpLog.Controls.Add(_ChkDump);
+            _ChkDark = new CheckBox { Text = "Dark mode (redémarrage requis)", Left = ctrlX + 130, Top = 20 + rowH * 2, AutoSize = true };
+            grpLog.Controls.Add(_ChkDark);
             p.Controls.Add(grpLog);
 
             var grpWeb = new GroupBox { Text = "Interface web", Left = 8, Top = 240, Width = 440, Height = 120 };
@@ -274,6 +333,40 @@ namespace dvbapiNet.DvbViewer
             }
         }
 
+        private void ExportCsv()
+        {
+            try
+            {
+                string ts = DateTime.Now.ToString("yyyyMMdd-HHmm");
+                string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                string csvPath = Path.Combine(desktop, "dvbapiNET-ecm-" + ts + ".csv");
+                var s = Oscam.DecryptionMonitor.Instance.GetSnapshot();
+                using (var sw = new StreamWriter(csvPath))
+                {
+                    sw.WriteLine("time,caid,pid,ecm_ms,reader,protocol,hops");
+                    for (int i = s.RecentEcm.Length - 1; i >= 0; i--)
+                    {
+                        var ev = s.RecentEcm[i];
+                        sw.Write(ev.When.ToString("o")); sw.Write(',');
+                        sw.Write("0x" + ev.CaId.ToString("X4")); sw.Write(',');
+                        sw.Write("0x" + ev.Pid.ToString("X4")); sw.Write(',');
+                        sw.Write(ev.EcmTimeMs); sw.Write(',');
+                        sw.Write(ev.Reader ?? ""); sw.Write(',');
+                        sw.Write(ev.Protocol ?? ""); sw.Write(',');
+                        sw.WriteLine(ev.Hops);
+                    }
+                }
+                System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + csvPath + "\"");
+                _LblStatus.Text = "CSV exporté : " + Path.GetFileName(csvPath);
+                _LblStatus.ForeColor = Color.DarkGreen;
+            }
+            catch (Exception ex)
+            {
+                _LblStatus.Text = "Erreur export : " + ex.Message;
+                _LblStatus.ForeColor = Color.DarkRed;
+            }
+        }
+
         private static string MaskPasswords(string ini)
         {
             var sb = new System.Text.StringBuilder();
@@ -331,6 +424,9 @@ namespace dvbapiNet.DvbViewer
             var bReset = new Button { Text = "Reset stats", Left = 12, Top = y, Width = 120, Height = 26 };
             bReset.Click += (s, ev) => { try { Oscam.DecryptionMonitor.Instance.Reset(); RefreshStatus(null, null); } catch { } };
             grpStats.Controls.Add(bReset);
+            var bExport = new Button { Text = "Exporter CSV…", Left = 140, Top = y, Width = 130, Height = 26 };
+            bExport.Click += (s, ev) => ExportCsv();
+            grpStats.Controls.Add(bExport);
             p.Controls.Add(grpStats);
 
             var grpEcm = new GroupBox { Text = "ECM récentes (les plus récentes en haut)", Left = 8, Top = 144, Width = 440, Height = 200 };
@@ -552,6 +648,7 @@ namespace dvbapiNet.DvbViewer
             _TxtWebUser.Text = webUser;
             _TxtWebPwd.Text = webPwd;
             _TxtWebhookUrl.Text = whUrl;
+            _ChkDark.Checked = _DarkMode;
         }
 
         private void BtnOk_Click(object sender, EventArgs e)
@@ -582,6 +679,7 @@ namespace dvbapiNet.DvbViewer
                 ini.SetValue("web", "password", _TxtWebPwd.Text);
                 ini.SetValue("dvbapi", "servers", _TxtServers.Text.Trim());
                 ini.SetValue("webhook", "url", _TxtWebhookUrl.Text.Trim());
+                ini.SetValue("ui", "dark", _ChkDark.Checked ? "1" : "0");
                 ini.Save();
                 Globals.ReloadConfig();
                 DialogResult = DialogResult.OK;

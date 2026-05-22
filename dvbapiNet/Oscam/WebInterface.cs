@@ -116,6 +116,11 @@ namespace dvbapiNet.Oscam
                         body = BuildEcmRecentJson();
                         contentType = "application/json";
                     }
+                    else if (path.StartsWith("/api/ecm/export.csv", StringComparison.OrdinalIgnoreCase))
+                    {
+                        body = BuildEcmCsv();
+                        contentType = "text/csv; charset=utf-8";
+                    }
                     else if (path.StartsWith("/api/ecm/latency-history", StringComparison.OrdinalIgnoreCase))
                     {
                         body = BuildLatencyHistoryJson();
@@ -477,6 +482,31 @@ function runDiscovery(){
                 "\"max_ms\":" + s.MaxEcmMs + "," +
                 "\"last_cw_iso\":\"" + (s.LastCwAt == DateTime.MinValue ? "" : s.LastCwAt.ToString("o")) + "\"" +
                 "}";
+        }
+
+        private static string BuildEcmCsv()
+        {
+            var s = DecryptionMonitor.Instance.GetSnapshot();
+            var sb = new StringBuilder("time,caid,pid,ecm_ms,reader,protocol,hops\r\n");
+            for (int i = s.RecentEcm.Length - 1; i >= 0; i--)
+            {
+                var ev = s.RecentEcm[i];
+                sb.Append(ev.When.ToString("o")).Append(',')
+                  .Append("0x").Append(ev.CaId.ToString("X4")).Append(',')
+                  .Append("0x").Append(ev.Pid.ToString("X4")).Append(',')
+                  .Append(ev.EcmTimeMs).Append(',')
+                  .Append(CsvEscape(ev.Reader)).Append(',')
+                  .Append(CsvEscape(ev.Protocol)).Append(',')
+                  .Append(ev.Hops).Append("\r\n");
+            }
+            return sb.ToString();
+        }
+
+        private static string CsvEscape(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            if (s.IndexOfAny(new[] { ',', '"', '\n', '\r' }) < 0) return s;
+            return "\"" + s.Replace("\"", "\"\"") + "\"";
         }
 
         private static string BuildEcmRecentJson()

@@ -234,6 +234,15 @@ namespace dvbapiNet.Log
             if (fi == null)
                 return false;
 
+            // Log rotation: si > 5 MB, rotate to .1 (drop .3 → .2 → .1)
+            try
+            {
+                fi.Refresh();
+                if (fi.Exists && fi.Length > 5L * 1024 * 1024)
+                    RotateLog(fi);
+            }
+            catch { }
+
             using (FileStream fs = new FileStream(fi.FullName, FileMode.OpenOrCreate))
             {
                 fs.Seek(0, SeekOrigin.End);
@@ -241,6 +250,26 @@ namespace dvbapiNet.Log
             }
 
             return true;
+        }
+
+        private static void RotateLog(FileInfo current)
+        {
+            try
+            {
+                string baseName = current.FullName;
+                // shift .2 -> .3, .1 -> .2, current -> .1 (keep 3 rotated)
+                for (int i = 2; i >= 1; i--)
+                {
+                    string src = baseName + "." + i;
+                    string dst = baseName + "." + (i + 1);
+                    if (File.Exists(dst)) File.Delete(dst);
+                    if (File.Exists(src)) File.Move(src, dst);
+                }
+                string firstRot = baseName + ".1";
+                if (File.Exists(firstRot)) File.Delete(firstRot);
+                File.Move(baseName, firstRot);
+            }
+            catch { }
         }
 
         /// <summary>

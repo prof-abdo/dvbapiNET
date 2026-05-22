@@ -1,5 +1,9 @@
 # dvbapiNET
 
+[![Build](https://github.com/prof-abdo/dvbapiNET/actions/workflows/build.yml/badge.svg)](https://github.com/prof-abdo/dvbapiNET/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/prof-abdo/dvbapiNET)](https://github.com/prof-abdo/dvbapiNET/releases)
+[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE)
+
 .NET plugin for **DVBViewer** and **MDAPI** that decrypts DVB streams via an **Oscam** server (dvbapi protocol).
 
 ## Features
