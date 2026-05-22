@@ -50,6 +50,12 @@
 * **Per-CAID ECM counters** (`/api/heatmap/caid`)
 * CW cache stats exposed in `/api/decrypt/stats` (`hits`, `misses`, `stores`, `size`)
 
+### v2.3 — Integration & quality
+
+* **MQTT publisher** — minimal hand-rolled MQTT 3.1.1 client (no NuGet dependency). Publishes plugin state every 10 seconds on configurable topics with Last-Will-Testament for availability.
+* **Home Assistant auto-discovery** — auto-creates 6 entities (connectivity, channel tuned, service ID, ECM latency, CW total, ECM total) under a single `dvbapiNET` device on first MQTT connection.
+* **xUnit test project** (`dvbapiNet.Tests/`) — 13 tests covering `ReconnectionStrategy` and `CwCache` (run with `dotnet test`).
+
 ## Build
 
 Prerequisites:
@@ -112,6 +118,15 @@ dark=0
 check=1
 owner=YOUR_GITHUB_USER
 repo=dvbapiNET
+
+[mqtt]
+enabled=0
+host=127.0.0.1
+port=1883
+user=
+password=
+topic=dvbapinet
+ha_discovery=1
 ```
 
 ## Web Interface
@@ -135,12 +150,21 @@ Open <http://127.0.0.1:8080/> — auto-refreshes every 5 s.
 | `GET /api/reconnect` | Force a reconnection |
 | `GET /api/decrypt/reset` | Reset counters |
 
+## Testing
+
+```powershell
+cd dvbapiNet.Tests
+dotnet test -p:Platform=x86
+```
+
+Requires .NET SDK (any recent version) — tests reference the pre-built DLL from `dvbapiNet\bin\x86\Release\`.
+
 ## Roadmap
 
-### v2.3 (planned)
-* xUnit test project for non-UI code (CwCache, ReconnectionStrategy, DecryptionMonitor)
-* MQTT publisher with Home Assistant auto-discovery
-* Multi-language UI (FR / EN / DE)
+### v2.4 (planned)
+* Multi-language UI (FR / EN / DE) via centralized `Message` enum
+* More tests covering `DecryptionMonitor` and `OscamDiscovery`
+* Polish / bug fixes based on community feedback
 
 ## License
 

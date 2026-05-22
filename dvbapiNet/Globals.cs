@@ -20,6 +20,9 @@ namespace dvbapiNet
         private static string _PipeName;
         private static Oscam.WebInterface _WebInterface;
         public static Oscam.WebInterface WebInterface => _WebInterface;
+        private static Oscam.MqttPublisher _Mqtt;
+        public static Oscam.MqttPublisher Mqtt => _Mqtt;
+        private static System.Threading.Timer _MqttStateTimer;
 
         public delegate void ExternalLog(string line);
 
@@ -132,6 +135,60 @@ namespace dvbapiNet
                 if (checkUpd) Oscam.UpdateChecker.StartAsync();
             }
             catch { }
+
+            try
+            {
+                bool mqttOn = false;
+                Config.Get("mqtt", "enabled", ref mqttOn);
+                if (mqttOn)
+                {
+                    string host = "127.0.0.1"; int port = 1883;
+                    string user = "", pwd = "", baseT = "dvbapinet";
+                    bool ha = true;
+                    Config.Get("mqtt", "host", ref host);
+                    Config.Get("mqtt", "port", 1, 65535, ref port);
+                    Config.Get("mqtt", "user", ref user);
+                    Config.Get("mqtt", "password", ref pwd);
+                    Config.Get("mqtt", "topic", ref baseT);
+                    Config.Get("mqtt", "ha_discovery", ref ha);
+
+                    _Mqtt = new Oscam.MqttPublisher(host, port, user, pwd, null, baseT, ha);
+                    _Mqtt.Start();
+
+                    _MqttStateTimer = new System.Threading.Timer(_ => PublishMqttState(), null,
+                        TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+                }
+            }
+            catch { }
+        }
+
+        private static void PublishMqttState()
+        {
+            if (_Mqtt == null || !_Mqtt.IsConnected) return;
+            try
+            {
+                var a = dvbapiNet.MdApi.Plugin.Adapter ?? dvbapiNet.DvbViewer.Plugin.Adapter;
+                if (a != null && a.HasDvbApiClient && !a.IsTuned)
+                {
+                    // pick the first one that has IsTuned if available
+                    var m = dvbapiNet.MdApi.Plugin.Adapter;
+                    var d = dvbapiNet.DvbViewer.Plugin.Adapter;
+                    if (m != null && m.IsTuned) a = m;
+                    else if (d != null && d.IsTuned) a = d;
+                }
+                var snap = dvbapiNet.Oscam.DecryptionMonitor.Instance.GetSnapshot();
+                string json =
+                    "{\"connected\":" + (a != null && a.HasDvbApiClient ? "true" : "false") +
+                    ",\"tuned\":" + (a != null && a.IsTuned ? "true" : "false") +
+                    ",\"sid\":" + (a?.CurrentService ?? 0) +
+                    ",\"pmt_pid\":" + (a?.CurrentPmtPid ?? 0) +
+                    ",\"cw_total\":" + snap.CwTotal +
+                    ",\"ecm_total\":" + snap.EcmTotal +
+                    ",\"last_ms\":" + snap.LastEcmMs +
+                    ",\"avg_ms\":" + snap.AvgEcmMs + "}";
+                _Mqtt.Publish("status", json, true);
+            }
+            catch { }
         }
 
         /// <summary>
@@ -189,6 +246,13 @@ namespace dvbapiNet
             def.SetValue("update", "owner", "");
             def.SetValue("update", "repo", "dvbapiNET");
             def.SetValue("cache", "cw", "0");
+            def.SetValue("mqtt", "enabled", "0");
+            def.SetValue("mqtt", "host", "127.0.0.1");
+            def.SetValue("mqtt", "port", "1883");
+            def.SetValue("mqtt", "user", "");
+            def.SetValue("mqtt", "password", "");
+            def.SetValue("mqtt", "topic", "dvbapinet");
+            def.SetValue("mqtt", "ha_discovery", "1");
 
             _Config = new Configuration(cfg, def);
         }
@@ -220,6 +284,8 @@ namespace dvbapiNet
 
         public static void Dispose()
         {
+            try { _MqttStateTimer?.Dispose(); } catch { }
+            try { _Mqtt?.Dispose(); } catch { }
             try { _WebInterface?.Dispose(); } catch { }
             LogProvider.Dispose();
         }

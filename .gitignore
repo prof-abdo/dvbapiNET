@@ -24,6 +24,8 @@ DllExport.bat.lock
 
 # Test results
 TestResults/
+dvbapiNet.Tests/bin/
+dvbapiNet.Tests/obj/
 
 # Local config
 *.local
