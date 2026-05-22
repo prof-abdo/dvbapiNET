@@ -1,0 +1,47 @@
+# Build output
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+
+# VS / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Packages
+packages/
+*.nupkg
+
+# DllExport scratch
+DllExportR.bat
+DllExport.bat.lock
+*.cache
+
+# Test results
+TestResults/
+
+# Local config
+*.local
+*.env
+update.cache.json
+
+# Editor / agent state
+.claude/
+.vscode/
+
+# Build artifact folders
+DLL OK/
+DLL backup/
+backup/
+
+# Markdown notes (internal)
+RECONNECTION_IMPLEMENTATION.md
+COMPILATION_GUIDE.md
+BUILD.ps1
+BUILD_DLL.bat
+DllExport.bat
