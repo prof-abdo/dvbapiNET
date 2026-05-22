@@ -173,6 +173,7 @@
     <Compile Include="Oscam\OscamDiscovery.cs" />
     <Compile Include="Oscam\UpdateChecker.cs" />
     <Compile Include="Oscam\WebhookDispatcher.cs" />
+    <Compile Include="Oscam\CwCache.cs" />
     <Compile Include="Oscam\Packets\DvbApiClientInfo.cs" />
     <Compile Include="Oscam\Packets\DvbApiServerInfo.cs" />
     <Compile Include="Oscam\Packets\EcmInfo.cs" />

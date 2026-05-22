@@ -22,6 +22,7 @@ namespace dvbapiNet.DvbViewer
         private CheckBox _ChkPretty;
         private CheckBox _ChkDump;
         private CheckBox _ChkDark;
+        private CheckBox _ChkCwCache;
 
         // Status tab
         private Label _LblConn;
@@ -217,6 +218,9 @@ namespace dvbapiNet.DvbViewer
             grpAdv.Controls.Add(MakeLabel("Webhook URL :", labelW, 48));
             _TxtWebhookUrl = new TextBox { Left = ctrlX, Top = 46, Width = 290 };
             grpAdv.Controls.Add(_TxtWebhookUrl);
+            _ChkCwCache = new CheckBox { Text = "CW cache (zapping rapide — expérimental)", Left = ctrlX, Top = 70, AutoSize = true };
+            grpAdv.Controls.Add(_ChkCwCache);
+            grpAdv.Height = 105;
             p.Controls.Add(grpAdv);
         }
 
@@ -649,6 +653,9 @@ namespace dvbapiNet.DvbViewer
             _TxtWebPwd.Text = webPwd;
             _TxtWebhookUrl.Text = whUrl;
             _ChkDark.Checked = _DarkMode;
+            bool cwCache = false;
+            try { Globals.Config.Get("cache", "cw", ref cwCache); } catch { }
+            _ChkCwCache.Checked = cwCache;
         }
 
         private void BtnOk_Click(object sender, EventArgs e)
@@ -680,6 +687,8 @@ namespace dvbapiNet.DvbViewer
                 ini.SetValue("dvbapi", "servers", _TxtServers.Text.Trim());
                 ini.SetValue("webhook", "url", _TxtWebhookUrl.Text.Trim());
                 ini.SetValue("ui", "dark", _ChkDark.Checked ? "1" : "0");
+                ini.SetValue("cache", "cw", _ChkCwCache.Checked ? "1" : "0");
+                Oscam.CwCache.Instance.Enabled = _ChkCwCache.Checked;
                 ini.Save();
                 Globals.ReloadConfig();
                 DialogResult = DialogResult.OK;

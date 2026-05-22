@@ -483,6 +483,22 @@ namespace dvbapiNet.Oscam
 
                 lock (_DescramblersList)
                     _DescramblersList.Add(descr);
+
+                // Cache seed: si on a un CW récent pour cette SID, appliquer immédiatement
+                // pour amorcer le décryptage avant que le vrai CW arrive d'Oscam.
+                try
+                {
+                    if (_ServiceId > 0)
+                    {
+                        var cached = CwCache.Instance.Take(_ServiceId);
+                        if (cached != null)
+                        {
+                            foreach (var entry in cached)
+                                descr.SetDescramblerData(entry.Parity, Dvb.Crypto.DescramblerDataType.Key, entry.Cw);
+                        }
+                    }
+                }
+                catch { }
             }
 
             return descr;
@@ -576,7 +592,10 @@ namespace dvbapiNet.Oscam
             byte[] data = rdr.ReadBytes((int)(dLen - rdr.BaseStream.Position));
 
             if (dType == DescramblerDataType.Key)
+            {
                 GotControlWord?.Invoke(data, parity);
+                try { if (_ServiceId > 0) CwCache.Instance.Store(_ServiceId, parity, data); } catch { }
+            }
 
             if (_UseMdApi)
                 return;

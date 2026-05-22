@@ -126,6 +126,16 @@ namespace dvbapiNet.Oscam
                         body = BuildLatencyHistoryJson();
                         contentType = "application/json";
                     }
+                    else if (path.StartsWith("/api/heatmap/channels", StringComparison.OrdinalIgnoreCase))
+                    {
+                        body = BuildHeatmapChannelsJson();
+                        contentType = "application/json";
+                    }
+                    else if (path.StartsWith("/api/heatmap/caid", StringComparison.OrdinalIgnoreCase))
+                    {
+                        body = BuildHeatmapCaidJson();
+                        contentType = "application/json";
+                    }
                     else if (path.StartsWith("/api/discovery/scan", StringComparison.OrdinalIgnoreCase))
                     {
                         body = BuildDiscoveryJson();
@@ -472,6 +482,7 @@ function runDiscovery(){
         private static string BuildDecryptStatsJson()
         {
             var s = DecryptionMonitor.Instance.GetSnapshot();
+            var cc = CwCache.Instance;
             return "{" +
                 "\"cw_total\":" + s.CwTotal + "," +
                 "\"cw_even\":" + s.CwEven + "," +
@@ -480,8 +491,39 @@ function runDiscovery(){
                 "\"last_ms\":" + s.LastEcmMs + "," +
                 "\"avg_ms\":" + s.AvgEcmMs + "," +
                 "\"max_ms\":" + s.MaxEcmMs + "," +
-                "\"last_cw_iso\":\"" + (s.LastCwAt == DateTime.MinValue ? "" : s.LastCwAt.ToString("o")) + "\"" +
+                "\"last_cw_iso\":\"" + (s.LastCwAt == DateTime.MinValue ? "" : s.LastCwAt.ToString("o")) + "\"," +
+                "\"cw_cache\":{\"enabled\":" + (cc.Enabled ? "true" : "false") +
+                ",\"hits\":" + cc.Hits + ",\"misses\":" + cc.Misses +
+                ",\"stores\":" + cc.Stores + ",\"size\":" + cc.Size + "}" +
                 "}";
+        }
+
+        private static string BuildHeatmapChannelsJson()
+        {
+            var top = DecryptionMonitor.Instance.GetTopChannels(10);
+            var sb = new StringBuilder("[");
+            for (int i = 0; i < top.Length; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"sid\":").Append(top[i].Key)
+                  .Append(",\"watch_seconds\":").Append(top[i].Value).Append('}');
+            }
+            sb.Append(']');
+            return sb.ToString();
+        }
+
+        private static string BuildHeatmapCaidJson()
+        {
+            var stats = DecryptionMonitor.Instance.GetCaidEcm();
+            var sb = new StringBuilder("[");
+            for (int i = 0; i < stats.Length; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"caid\":\"0x").Append(stats[i].Key.ToString("X4"))
+                  .Append("\",\"ecm_count\":").Append(stats[i].Value).Append('}');
+            }
+            sb.Append(']');
+            return sb.ToString();
         }
 
         private static string BuildEcmCsv()

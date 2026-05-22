@@ -45,6 +45,14 @@ namespace dvbapiNet.Oscam
         private readonly int[] _LatencyBuckets = new int[60];
         private DateTime _LastBucketTime = DateTime.UtcNow;
 
+        // Per-channel watch time (sid → seconds)
+        private readonly Dictionary<int, long> _ChannelWatchSec = new Dictionary<int, long>();
+        private int _CurrentSid = 0;
+        private DateTime _CurrentSidStart = DateTime.MinValue;
+
+        // Per-CAID ECM count
+        private readonly Dictionary<int, long> _CaidEcm = new Dictionary<int, long>();
+
         private DecryptionMonitor() { }
 
         public void Attach(DvbApiAdapter adapter)
@@ -85,6 +93,28 @@ namespace dvbapiNet.Oscam
                 _LastEcmMs = info.EcmTime;
                 if (info.EcmTime > _MaxEcmMs) _MaxEcmMs = info.EcmTime;
 
+                // Per-CAID counter
+                if (_CaidEcm.ContainsKey(info.CaId)) _CaidEcm[info.CaId]++;
+                else _CaidEcm[info.CaId] = 1;
+
+                // Channel switch tracking (via ServiceId in ECM info)
+                if (info.ServiceId != _CurrentSid)
+                {
+                    if (_CurrentSid > 0 && _CurrentSidStart != DateTime.MinValue)
+                    {
+                        long elapsed = (long)(DateTime.UtcNow - _CurrentSidStart).TotalSeconds;
+                        if (elapsed > 0)
+                        {
+                            if (_ChannelWatchSec.ContainsKey(_CurrentSid))
+                                _ChannelWatchSec[_CurrentSid] += elapsed;
+                            else
+                                _ChannelWatchSec[_CurrentSid] = elapsed;
+                        }
+                    }
+                    _CurrentSid = info.ServiceId;
+                    _CurrentSidStart = DateTime.UtcNow;
+                }
+
                 _LatencyWindow[_LatencyCursor] = info.EcmTime;
                 _LatencyCursor = (_LatencyCursor + 1) % cLatencyWindow;
                 if (_LatencyCount < cLatencyWindow) _LatencyCount++;
@@ -114,6 +144,38 @@ namespace dvbapiNet.Oscam
                 var copy = new int[_LatencyBuckets.Length];
                 Array.Copy(_LatencyBuckets, copy, copy.Length);
                 return copy;
+            }
+        }
+
+        public KeyValuePair<int, long>[] GetTopChannels(int max = 10)
+        {
+            lock (_Lock)
+            {
+                // Add live elapsed for current channel
+                var snap = new Dictionary<int, long>(_ChannelWatchSec);
+                if (_CurrentSid > 0 && _CurrentSidStart != DateTime.MinValue)
+                {
+                    long live = (long)(DateTime.UtcNow - _CurrentSidStart).TotalSeconds;
+                    if (live > 0)
+                    {
+                        if (snap.ContainsKey(_CurrentSid)) snap[_CurrentSid] += live;
+                        else snap[_CurrentSid] = live;
+                    }
+                }
+                var sorted = new List<KeyValuePair<int, long>>(snap);
+                sorted.Sort((a, b) => b.Value.CompareTo(a.Value));
+                if (sorted.Count > max) sorted.RemoveRange(max, sorted.Count - max);
+                return sorted.ToArray();
+            }
+        }
+
+        public KeyValuePair<int, long>[] GetCaidEcm()
+        {
+            lock (_Lock)
+            {
+                var sorted = new List<KeyValuePair<int, long>>(_CaidEcm);
+                sorted.Sort((a, b) => b.Value.CompareTo(a.Value));
+                return sorted.ToArray();
             }
         }
 

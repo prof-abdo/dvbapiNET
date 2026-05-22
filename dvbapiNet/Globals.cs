@@ -188,6 +188,7 @@ namespace dvbapiNet
             def.SetValue("ui", "tray", "1");
             def.SetValue("update", "owner", "");
             def.SetValue("update", "repo", "dvbapiNET");
+            def.SetValue("cache", "cw", "0");
 
             _Config = new Configuration(cfg, def);
         }
