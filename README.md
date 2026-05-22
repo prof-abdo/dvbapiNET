@@ -1,58 +1,66 @@
 # dvbapiNET
 
-Plugin .NET pour **DVBViewer** et **MDAPI** qui décrypte les flux DVB via un serveur **Oscam** (protocole dvbapi).
+.NET plugin for **DVBViewer** and **MDAPI** that decrypts DVB streams via an **Oscam** server (dvbapi protocol).
 
-## Fonctionnalités
+## Features
 
 ### Core
-- Décryptage DVB en temps réel via Oscam (TCP dvbapi)
-- Compatible **DVBViewer** (plugin natif) et **MDAPI** (ProgDVB, etc.)
-- Reconnexion automatique avec backoff exponentiel
-- Heartbeat 30s pour détection de coupure
-- Queue de commandes pendantes pendant déconnexion
 
-### v2.0 — nouveautés
-- **Menu intégré** `Plugins → dvbapiNet` dans DVBViewer (clic = configuration)
-- **Dialog Windows à onglets** : Configuration / Statut & Actions / Debug / À propos
-- **Interface web** intégrée sur port 8080 (TcpListener, pas d'URL ACL)
-  - Page status auto-refresh
-  - Stats décryptage (CW total/even/odd, ECM total, latence)
-  - Historique des 100 dernières ECMs (CAID, PID, latence, reader, protocole)
-  - Graphique sparkline latence ECM sur 60 min
-  - Endpoints JSON
-- **Auto-discovery** des serveurs Oscam sur le subnet local
-- **Failover multi-serveurs** Oscam (liste prioritaire, bascule auto)
-- **Tray icon Windows** avec menu rapide et notifications natives
-  - Vert = chaîne tunée, orange = connecté en attente, rouge = déconnecté
-  - Toasts sur événements : Oscam down/up, ECM timeout > 15s
-- **Auth basique HTTP** optionnelle sur l'interface web
-- **Webhooks sortants** (POST JSON) sur événements
-- **Diagnostic 1-clic** : génère un ZIP (log + config masqué + snapshot)
-- **Auto-updater** GitHub : check des releases, notification au démarrage
+* Real-time DVB decryption via Oscam (TCP dvbapi)
+* Compatible with **DVBViewer** (native plugin) and **MDAPI** (ProgDVB, etc.)
+* Automatic reconnection with exponential backoff
+* 30s heartbeat for connection loss detection
+* Pending command queue during disconnection
+
+### v2.0 — New Features
+
+* **Integrated menu** `Plugins → dvbapiNet` in DVBViewer (click = configuration)
+* **Tabbed Windows Dialogs**: Configuration / Status & Actions / Debug / About
+* **Integrated web interface** on port 8080 (TcpListener, no URL ACL required)
+* Auto-refreshing status page
+* Decryption stats (total/even/odd CWs, total ECMs, latency)
+* History of the last 100 ECMs (CAID, PID, latency, reader, protocol)
+* 60-min ECM latency sparkline chart
+* JSON endpoints
+
+
+* **Auto-discovery** of Oscam servers on the local subnet
+* **Multi-server failover** for Oscam (priority list, auto-switch)
+* **Windows tray icon** with quick menu and native notifications
+* Green = channel tuned, orange = connected & waiting, red = disconnected
+* Toast notifications on events: Oscam down/up, ECM timeout > 15s
+
+
+* Optional **HTTP Basic Auth** on the web interface
+* **Outgoing webhooks** (POST JSON) on events
+* **1-click diagnostics**: generates a ZIP archive (logs + masked config + snapshot)
+* **GitHub auto-updater**: checks for releases, notifies on startup
 
 ## Build
 
-Prérequis :
-- Visual Studio 2022 (ou MSBuild Tools 17+)
-- .NET Framework 4.8.1 SDK
-- Plateforme cible : **x86** (DVBViewer 32-bit)
+Prerequisites:
+
+* Visual Studio 2022 (or MSBuild Tools 17+)
+* .NET Framework 4.8.1 SDK
+* Target platform: **x86** (DVBViewer 32-bit)
 
 ```powershell
 MSBuild dvbapi.net.sln /p:Configuration=Release /p:Platform=x86 /t:dvbapiNet
+
 ```
 
-La DLL est générée dans `dvbapiNet\bin\x86\Release\dvbapiNet.dll`.
+The DLL is generated in `dvbapiNet\bin\x86\Release\dvbapiNet.dll`.
 
 ## Installation
 
-1. Fermer DVBViewer.
-2. Copier `dvbapiNet.dll` dans `C:\Program Files (x86)\DVBViewer\Plugins\`.
-3. Démarrer DVBViewer.
-4. Menu `Plugins → dvbapiNet` → configurer le serveur Oscam.
+1. Close DVBViewer.
+2. Copy `dvbapiNet.dll` to `C:\Program Files (x86)\DVBViewer\Plugins\`.
+3. Start DVBViewer.
+4. Go to the `Plugins → dvbapiNet` menu → configure the Oscam server.
 
 ## Configuration
 
-Fichier `%ProgramData%\dvbapiNET\dvbapiNET.ini` :
+File: `%ProgramData%\dvbapiNET\dvbapiNET.ini`
 
 ```ini
 [dvbapi]
@@ -79,25 +87,27 @@ tray=1
 check=1
 owner=YOUR_GITHUB_USER
 repo=dvbapiNET
+
 ```
 
-## Interface web
+## Web Interface
 
-Naviguer sur `http://127.0.0.1:8080/` — auto-refresh 5s.
+Navigate to `[http://127.0.0.1:8080/](http://127.0.0.1:8080/)` — auto-refreshes every 5s.
 
-API JSON :
-- `GET /api/status` — connexion, chaîne tunée, SID, PID
-- `GET /api/decrypt/stats` — compteurs CW, ECM, latence
-- `GET /api/ecm/recent` — 100 dernières ECMs
-- `GET /api/ecm/latency-history` — buckets latence par minute (60 min)
-- `GET /api/discovery/scan` — scan subnet local pour Oscam (~5s)
-- `GET /api/reconnect` — force une reconnexion
-- `GET /api/decrypt/reset` — reset compteurs
-- `GET /api/config` — config courante (sans password)
-- `GET /api/log/tail?n=200` — N dernières lignes du log
+JSON API endpoints:
+
+* `GET /api/status` — connection, tuned channel, SID, PID
+* `GET /api/decrypt/stats` — CW, ECM counters, latency
+* `GET /api/ecm/recent` — last 100 ECMs
+* `GET /api/ecm/latency-history` — minute-by-minute latency buckets (60 min)
+* `GET /api/discovery/scan` — local subnet scan for Oscam (~5s)
+* `GET /api/reconnect` — forces a reconnection
+* `GET /api/decrypt/reset` — resets counters
+* `GET /api/config` — current configuration (excluding password)
+* `GET /api/log/tail?n=200` — last N log lines
 
 ## License
 
-GPL-3.0 — voir `LICENSE`.
+GPL-3.0 — see `LICENSE`.
 
-Basé sur le travail original de **t5b6_de** et la communauté.
+Based on the original work by **t5b6_de** and the community.
