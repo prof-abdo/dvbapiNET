@@ -341,7 +341,7 @@ namespace dvbapiNet.Oscam
             string ver = Globals.Info ?? "";
 
             string okCls(bool b) => b ? "ok" : "ko";
-            string okTxt(bool b) => b ? "OUI" : "NON";
+            string okTxt(bool b) => b ? "YES" : "NO";
 
             var snap = DecryptionMonitor.Instance.GetSnapshot();
 
@@ -353,15 +353,15 @@ namespace dvbapiNet.Oscam
                 int agoSec = (int)(DateTime.UtcNow - ev.When).TotalSeconds;
                 ecmRows.Append("<tr><td>" + agoSec + "s</td><td>0x" + ev.CaId.ToString("X4") + "</td><td>0x" + ev.Pid.ToString("X4") + "</td><td>" + ev.EcmTimeMs + " ms</td><td>" + WebEscape(ev.Reader) + "</td><td>" + WebEscape(ev.Protocol) + "</td></tr>");
             }
-            if (shown == 0) ecmRows.Append("<tr><td colspan='6' style='color:#666;text-align:center'>aucune ECM reçue</td></tr>");
+            if (shown == 0) ecmRows.Append("<tr><td colspan='6' style='color:#666;text-align:center'>no ECMs received</td></tr>");
 
             var upd = UpdateChecker.LatestRelease;
             string updBanner = upd == null ? "" :
                 "<div style='background:#264f78;color:#fff;padding:10px 16px;border-radius:6px;margin-bottom:16px;max-width:720px'>" +
-                "Nouvelle version <strong>" + WebEscape(upd.TagName) + "</strong> disponible — " +
-                "<a href='" + WebEscape(upd.Url) + "' target='_blank' style='color:#9cdcfe'>voir sur GitHub</a></div>";
+                "New version <strong>" + WebEscape(upd.TagName) + "</strong> available — " +
+                "<a href='" + WebEscape(upd.Url) + "' target='_blank' style='color:#9cdcfe'>view on GitHub</a></div>";
 
-            return @"<!DOCTYPE html><html lang='fr'><head>
+            return @"<!DOCTYPE html><html lang='en'><head>
 <meta charset='utf-8'>
 <meta http-equiv='refresh' content='5'>
 <title>dvbapiNET</title>
@@ -396,15 +396,15 @@ td{padding:5px 6px;border-bottom:1px solid #2d2d2d}
 " + updBanner + @"
 <div class='card'>
 <div class='row'><span class='label'>Version</span><span class='value'>" + ver + @"</span></div>
-<div class='row'><span class='label'>Connecté à Oscam</span><span class='value " + okCls(connected) + "'>" + okTxt(connected) + @"</span></div>
-<div class='row'><span class='label'>Chaîne tunée</span><span class='value " + okCls(tuned) + "'>" + okTxt(tuned) + @"</span></div>
+<div class='row'><span class='label'>Connected to Oscam</span><span class='value " + okCls(connected) + "'>" + okTxt(connected) + @"</span></div>
+<div class='row'><span class='label'>Channel tuned</span><span class='value " + okCls(tuned) + "'>" + okTxt(tuned) + @"</span></div>
 <div class='row'><span class='label'>Service ID</span><span class='value'>" + sid + @"</span></div>
 <div class='row'><span class='label'>PMT PID</span><span class='value'>0x" + pmt.ToString("X4") + @"</span></div>
 <div class='row'><span class='label'>Transport Stream</span><span class='value'>" + tsid + @"</span></div>
 <div class='row'><span class='label'>Network ID</span><span class='value'>" + nid + @"</span></div>
 </div>
 
-<h2>Décryptage</h2>
+<h2>Decryption</h2>
 <div class='card'>
 <canvas id='lat' width='600' height='100' style='width:100%;height:100px;background:#1e1e1e;border:1px solid #333;border-radius:4px;margin-bottom:16px'></canvas>
 <div class='grid'>
@@ -419,15 +419,15 @@ td{padding:5px 6px;border-bottom:1px solid #2d2d2d}
 </div>
 </div>
 
-<h2>ECM récentes</h2>
+<h2>Recent ECMs</h2>
 <div class='card'>
-<table><thead><tr><th>Quand</th><th>CAID</th><th>PID</th><th>Latence</th><th>Reader</th><th>Protocole</th></tr></thead><tbody>" + ecmRows.ToString() + @"</tbody></table>
+<table><thead><tr><th>When</th><th>CAID</th><th>PID</th><th>Latency</th><th>Reader</th><th>Protocol</th></tr></thead><tbody>" + ecmRows.ToString() + @"</tbody></table>
 </div>
 
 <div class='actions'>
-<button onclick=""fetch('/api/reconnect').then(()=>location.reload())"">Reconnecter</button>
+<button onclick=""fetch('/api/reconnect').then(()=>location.reload())"">Reconnect</button>
 <button onclick=""if(confirm('Reset stats?'))fetch('/api/decrypt/reset').then(()=>location.reload())"">Reset stats</button>
-<button onclick=""runDiscovery()"">Détecter serveurs</button>
+<button onclick=""runDiscovery()"">Detect servers</button>
 <a href='/api/status' style='margin-left:8px'>JSON</a>
 </div>
 
@@ -455,13 +455,13 @@ fetch('/api/ecm/latency-history').then(r=>r.json()).then(buckets=>{
 function runDiscovery(){
   var el=document.getElementById('disc');
   el.classList.add('show');
-  el.innerHTML='<em>Scan en cours…</em>';
+  el.innerHTML='<em>Scanning…</em>';
   fetch('/api/discovery/scan').then(r=>r.json()).then(list=>{
-    if(!list.length){el.innerHTML='<em>Aucun serveur trouvé.</em>';return;}
-    var h='<strong>'+list.length+' serveur(s) :</strong><table><thead><tr><th>IP</th><th>Port</th><th>Version</th></tr></thead><tbody>';
+    if(!list.length){el.innerHTML='<em>No server found.</em>';return;}
+    var h='<strong>'+list.length+' server(s):</strong><table><thead><tr><th>IP</th><th>Port</th><th>Version</th></tr></thead><tbody>';
     list.forEach(s=>{h+='<tr><td>'+s.ip+'</td><td>'+s.port+'</td><td>'+s.version+'</td></tr>';});
     el.innerHTML=h+'</tbody></table>';
-  }).catch(e=>{el.innerHTML='<em>Erreur : '+e+'</em>';});
+  }).catch(e=>{el.innerHTML='<em>Error: '+e+'</em>';});
 }
 </script>
 </body></html>";

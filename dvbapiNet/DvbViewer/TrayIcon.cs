@@ -37,10 +37,10 @@ namespace dvbapiNet.DvbViewer
 
             _Menu = new ContextMenuStrip();
             _Menu.Items.Add("Configuration…", null, (s, e) => OpenConfig());
-            _Menu.Items.Add("Statut (Web)", null, (s, e) => OpenWeb());
-            _Menu.Items.Add("Reconnecter", null, (s, e) => Reconnect());
+            _Menu.Items.Add("Status (Web)", null, (s, e) => OpenWeb());
+            _Menu.Items.Add("Reconnect", null, (s, e) => Reconnect());
             _Menu.Items.Add(new ToolStripSeparator());
-            _Menu.Items.Add("Quitter le tray", null, (s, e) => Dispose());
+            _Menu.Items.Add("Exit tray", null, (s, e) => Dispose());
             _Icon.ContextMenuStrip = _Menu;
             _Icon.DoubleClick += (s, e) => OpenConfig();
 
@@ -77,14 +77,14 @@ namespace dvbapiNet.DvbViewer
                     {
                         if (st == TrayState.Disconnected && (DateTime.UtcNow - _LastDownNotify).TotalSeconds > 60)
                         {
-                            Notify("dvbapiNET", "Oscam déconnecté.", ToolTipIcon.Warning);
+                            Notify("dvbapiNET", "Oscam disconnected.", ToolTipIcon.Warning);
                             _LastDownNotify = DateTime.UtcNow;
                             try { WebhookDispatcher.Post("oscam_down", "{}"); } catch { }
                         }
                         else if ((st == TrayState.Idle || st == TrayState.Tuned) && _LastState == TrayState.Disconnected
                                  && (DateTime.UtcNow - _LastUpNotify).TotalSeconds > 60)
                         {
-                            Notify("dvbapiNET", "Oscam reconnecté.", ToolTipIcon.Info);
+                            Notify("dvbapiNET", "Oscam reconnected.", ToolTipIcon.Info);
                             _LastUpNotify = DateTime.UtcNow;
                             try { WebhookDispatcher.Post("oscam_up", "{}"); } catch { }
                         }
@@ -104,7 +104,7 @@ namespace dvbapiNet.DvbViewer
                     else if ((DateTime.UtcNow - _LastCwGrowth).TotalSeconds > 15
                              && (DateTime.UtcNow - _LastTimeoutNotify).TotalSeconds > 60)
                     {
-                        Notify("dvbapiNET", "Aucun CW reçu depuis 15s. CAM ou ECM bloqué ?", ToolTipIcon.Warning);
+                        Notify("dvbapiNET", "No CW received in 15s. CAM or ECM blocked?", ToolTipIcon.Warning);
                         _LastTimeoutNotify = DateTime.UtcNow;
                         try { WebhookDispatcher.Post("ecm_timeout", "{}"); } catch { }
                     }
@@ -139,10 +139,10 @@ namespace dvbapiNet.DvbViewer
         {
             switch (st)
             {
-                case TrayState.Tuned: return "Chaîne tunée";
-                case TrayState.Idle: return "Connecté, en attente";
-                case TrayState.Disconnected: return "Déconnecté";
-                default: return "État inconnu";
+                case TrayState.Tuned: return "Channel tuned";
+                case TrayState.Idle: return "Connected, idle";
+                case TrayState.Disconnected: return "Disconnected";
+                default: return "Unknown state";
             }
         }
 

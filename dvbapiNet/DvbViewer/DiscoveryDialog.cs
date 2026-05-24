@@ -27,7 +27,7 @@ namespace dvbapiNet.DvbViewer
 
         private void BuildUi()
         {
-            Text = "Détection serveurs Oscam";
+            Text = "Oscam server detection";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -46,9 +46,9 @@ namespace dvbapiNet.DvbViewer
                 GridLines = true,
                 MultiSelect = false
             };
-            _List.Columns.Add("Adresse", 140);
+            _List.Columns.Add("Address", 140);
             _List.Columns.Add("Port", 60);
-            _List.Columns.Add("Version Oscam", 200);
+            _List.Columns.Add("Oscam version", 200);
             _List.DoubleClick += (s, e) => { if (_List.SelectedItems.Count > 0) BtnUse_Click(null, null); };
             Controls.Add(_List);
 
@@ -67,15 +67,15 @@ namespace dvbapiNet.DvbViewer
             _LblStatus = new Label { Left = 12, Top = 258, Width = 280, Height = 20, ForeColor = Color.Gray };
             Controls.Add(_LblStatus);
 
-            _BtnScan = new Button { Text = "Scanner", Left = 12, Top = 282, Width = 100, Height = 26 };
+            _BtnScan = new Button { Text = "Scan", Left = 12, Top = 282, Width = 100, Height = 26 };
             _BtnScan.Click += BtnScan_Click;
             Controls.Add(_BtnScan);
 
-            _BtnUse = new Button { Text = "Utiliser", Left = 260, Top = 282, Width = 80, Height = 26 };
+            _BtnUse = new Button { Text = "Use", Left = 260, Top = 282, Width = 80, Height = 26 };
             _BtnUse.Click += BtnUse_Click;
             Controls.Add(_BtnUse);
 
-            _BtnCancel = new Button { Text = "Annuler", Left = 348, Top = 282, Width = 80, Height = 26 };
+            _BtnCancel = new Button { Text = "Cancel", Left = 348, Top = 282, Width = 80, Height = 26 };
             _BtnCancel.Click += (s, e) => { try { _Cts?.Cancel(); } catch { } DialogResult = DialogResult.Cancel; Close(); };
             Controls.Add(_BtnCancel);
 
@@ -90,7 +90,7 @@ namespace dvbapiNet.DvbViewer
 
             _List.Items.Clear();
             _BtnScan.Enabled = false;
-            _LblStatus.Text = "Scan en cours…";
+            _LblStatus.Text = "Scanning…";
             _Progress.Visible = true;
             _Progress.MarqueeAnimationSpeed = 30;
 
@@ -110,12 +110,12 @@ namespace dvbapiNet.DvbViewer
                 }
 
                 _LblStatus.Text = found.Count == 0
-                    ? "Aucun serveur trouvé."
-                    : $"{found.Count} serveur(s) trouvé(s).";
+                    ? "No server found."
+                    : $"{found.Count} server(s) found.";
             }
             catch (Exception ex)
             {
-                _LblStatus.Text = "Erreur : " + ex.Message;
+                _LblStatus.Text = "Error: " + ex.Message;
             }
             finally
             {
@@ -129,7 +129,7 @@ namespace dvbapiNet.DvbViewer
         {
             if (_List.SelectedItems.Count == 0)
             {
-                _LblStatus.Text = "Sélectionnez un serveur.";
+                _LblStatus.Text = "Select a server.";
                 return;
             }
             SelectedServer = _List.SelectedItems[0].Tag as OscamDiscovery.DiscoveredServer;

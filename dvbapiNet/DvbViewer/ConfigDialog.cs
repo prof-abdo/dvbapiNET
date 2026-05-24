@@ -124,7 +124,7 @@ namespace dvbapiNet.DvbViewer
             BuildConfigTab(tabConfig);
             tabs.TabPages.Add(tabConfig);
 
-            var tabActions = new TabPage("Statut / Actions");
+            var tabActions = new TabPage("Status / Actions");
             BuildActionsTab(tabActions);
             tabs.TabPages.Add(tabActions);
 
@@ -132,7 +132,7 @@ namespace dvbapiNet.DvbViewer
             BuildDebugTab(tabDebug);
             tabs.TabPages.Add(tabDebug);
 
-            var tabAbout = new TabPage("À propos");
+            var tabAbout = new TabPage("About");
             BuildAboutTab(tabAbout);
             tabs.TabPages.Add(tabAbout);
 
@@ -143,7 +143,7 @@ namespace dvbapiNet.DvbViewer
 
             _BtnOk = new Button { Text = "OK", Left = 304, Top = 488, Width = 80, Height = 26 };
             _BtnOk.Click += BtnOk_Click;
-            _BtnCancel = new Button { Text = "Annuler", Left = 392, Top = 488, Width = 80, Height = 26 };
+            _BtnCancel = new Button { Text = "Cancel", Left = 392, Top = 488, Width = 80, Height = 26 };
             _BtnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
             Controls.Add(_BtnOk);
             Controls.Add(_BtnCancel);
@@ -163,62 +163,62 @@ namespace dvbapiNet.DvbViewer
             int rowH = 28;
 
             var grpOscam = new GroupBox { Text = "Oscam", Left = 8, Top = 8, Width = 440, Height = 110 };
-            grpOscam.Controls.Add(MakeLabel("Serveur :", labelW, 22));
+            grpOscam.Controls.Add(MakeLabel("Server:", labelW, 22));
             _TxtHost = new TextBox { Left = ctrlX, Top = 20, Width = 200 };
             grpOscam.Controls.Add(_TxtHost);
 
-            var btnDetect = new Button { Text = "Détecter…", Left = ctrlX + 210, Top = 18, Width = 90, Height = 24 };
+            var btnDetect = new Button { Text = "Detect…", Left = ctrlX + 210, Top = 18, Width = 90, Height = 24 };
             btnDetect.Click += BtnDetect_Click;
             grpOscam.Controls.Add(btnDetect);
 
-            grpOscam.Controls.Add(MakeLabel("Port :", labelW, 22 + rowH));
+            grpOscam.Controls.Add(MakeLabel("Port:", labelW, 22 + rowH));
             _TxtPort = new TextBox { Left = ctrlX, Top = 20 + rowH, Width = 60 };
             grpOscam.Controls.Add(_TxtPort);
 
-            grpOscam.Controls.Add(MakeLabel("Offset adapt. :", labelW, 22 + rowH * 2));
+            grpOscam.Controls.Add(MakeLabel("Adapter offset:", labelW, 22 + rowH * 2));
             _TxtOffset = new TextBox { Left = ctrlX, Top = 20 + rowH * 2, Width = 60 };
             grpOscam.Controls.Add(_TxtOffset);
             p.Controls.Add(grpOscam);
 
-            var grpLog = new GroupBox { Text = "Journalisation", Left = 8, Top = 124, Width = 440, Height = 110 };
-            grpLog.Controls.Add(MakeLabel("Niveau debug :", labelW, 22));
+            var grpLog = new GroupBox { Text = "Logging", Left = 8, Top = 124, Width = 440, Height = 110 };
+            grpLog.Controls.Add(MakeLabel("Debug level:", labelW, 22));
             _TxtDebug = new TextBox { Left = ctrlX, Top = 20, Width = 60 };
             grpLog.Controls.Add(_TxtDebug);
-            grpLog.Controls.Add(new Label { Text = "(0 = désactivé)", Left = ctrlX + 70, Top = 22, AutoSize = true });
+            grpLog.Controls.Add(new Label { Text = "(0 = disabled)", Left = ctrlX + 70, Top = 22, AutoSize = true });
 
-            _ChkPretty = new CheckBox { Text = "Logs formatés (pretty)", Left = ctrlX, Top = 20 + rowH, AutoSize = true };
+            _ChkPretty = new CheckBox { Text = "Pretty-format logs", Left = ctrlX, Top = 20 + rowH, AutoSize = true };
             grpLog.Controls.Add(_ChkPretty);
-            _ChkDump = new CheckBox { Text = "Dump stream TS", Left = ctrlX, Top = 20 + rowH * 2, AutoSize = true };
+            _ChkDump = new CheckBox { Text = "Dump TS stream", Left = ctrlX, Top = 20 + rowH * 2, AutoSize = true };
             grpLog.Controls.Add(_ChkDump);
-            _ChkDark = new CheckBox { Text = "Dark mode (redémarrage requis)", Left = ctrlX + 130, Top = 20 + rowH * 2, AutoSize = true };
+            _ChkDark = new CheckBox { Text = "Dark mode (restart required)", Left = ctrlX + 130, Top = 20 + rowH * 2, AutoSize = true };
             grpLog.Controls.Add(_ChkDark);
             p.Controls.Add(grpLog);
 
-            var grpWeb = new GroupBox { Text = "Interface web", Left = 8, Top = 240, Width = 440, Height = 120 };
-            grpWeb.Controls.Add(MakeLabel("Port :", labelW, 18));
+            var grpWeb = new GroupBox { Text = "Web interface", Left = 8, Top = 240, Width = 440, Height = 120 };
+            grpWeb.Controls.Add(MakeLabel("Port:", labelW, 18));
             _TxtWebPort = new TextBox { Left = ctrlX, Top = 16, Width = 60 };
             grpWeb.Controls.Add(_TxtWebPort);
-            grpWeb.Controls.Add(new Label { Text = "(redémarrage requis)", Left = ctrlX + 70, Top = 18, AutoSize = true, ForeColor = Color.Gray });
+            grpWeb.Controls.Add(new Label { Text = "(restart required)", Left = ctrlX + 70, Top = 18, AutoSize = true, ForeColor = Color.Gray });
 
-            grpWeb.Controls.Add(MakeLabel("User (auth) :", labelW, 18 + rowH));
+            grpWeb.Controls.Add(MakeLabel("User (auth):", labelW, 18 + rowH));
             _TxtWebUser = new TextBox { Left = ctrlX, Top = 16 + rowH, Width = 120 };
             grpWeb.Controls.Add(_TxtWebUser);
 
-            grpWeb.Controls.Add(MakeLabel("Password :", labelW, 18 + rowH * 2));
+            grpWeb.Controls.Add(MakeLabel("Password:", labelW, 18 + rowH * 2));
             _TxtWebPwd = new TextBox { Left = ctrlX, Top = 16 + rowH * 2, Width = 120, UseSystemPasswordChar = true };
             grpWeb.Controls.Add(_TxtWebPwd);
-            grpWeb.Controls.Add(new Label { Text = "(vide = pas d'auth)", Left = ctrlX + 130, Top = 18 + rowH * 2, AutoSize = true, ForeColor = Color.Gray });
+            grpWeb.Controls.Add(new Label { Text = "(empty = no auth)", Left = ctrlX + 130, Top = 18 + rowH * 2, AutoSize = true, ForeColor = Color.Gray });
             p.Controls.Add(grpWeb);
 
-            var grpAdv = new GroupBox { Text = "Avancé", Left = 8, Top = 366, Width = 440, Height = 88 };
-            grpAdv.Controls.Add(MakeLabel("Serveurs failover :", labelW, 18));
+            var grpAdv = new GroupBox { Text = "Advanced", Left = 8, Top = 366, Width = 440, Height = 88 };
+            grpAdv.Controls.Add(MakeLabel("Failover servers:", labelW, 18));
             _TxtServers = new TextBox { Left = ctrlX, Top = 16, Width = 290 };
             grpAdv.Controls.Add(_TxtServers);
             grpAdv.Controls.Add(new Label { Text = "host:port,host:port", Left = ctrlX, Top = 30, AutoSize = true, ForeColor = Color.Gray, Font = new Font("Segoe UI", 7.5f) });
-            grpAdv.Controls.Add(MakeLabel("Webhook URL :", labelW, 48));
+            grpAdv.Controls.Add(MakeLabel("Webhook URL:", labelW, 48));
             _TxtWebhookUrl = new TextBox { Left = ctrlX, Top = 46, Width = 290 };
             grpAdv.Controls.Add(_TxtWebhookUrl);
-            _ChkCwCache = new CheckBox { Text = "CW cache (zapping rapide — expérimental)", Left = ctrlX, Top = 70, AutoSize = true };
+            _ChkCwCache = new CheckBox { Text = "CW cache (fast zapping — experimental)", Left = ctrlX, Top = 70, AutoSize = true };
             grpAdv.Controls.Add(_ChkCwCache);
             grpAdv.Height = 105;
             p.Controls.Add(grpAdv);
@@ -226,32 +226,32 @@ namespace dvbapiNet.DvbViewer
 
         private void BuildActionsTab(TabPage p)
         {
-            var grpStat = new GroupBox { Text = "Statut", Left = 8, Top = 8, Width = 440, Height = 160 };
+            var grpStat = new GroupBox { Text = "Status", Left = 8, Top = 8, Width = 440, Height = 160 };
             int y = 22;
-            grpStat.Controls.Add(new Label { Text = "Connexion Oscam :", Left = 12, Top = y, AutoSize = true });
+            grpStat.Controls.Add(new Label { Text = "Oscam connection:", Left = 12, Top = y, AutoSize = true });
             _LblConn = new Label { Left = 160, Top = y, AutoSize = true, Font = new Font("Consolas", 9f) };
             grpStat.Controls.Add(_LblConn);
             y += 24;
-            grpStat.Controls.Add(new Label { Text = "Chaîne tunée :", Left = 12, Top = y, AutoSize = true });
+            grpStat.Controls.Add(new Label { Text = "Channel tuned:", Left = 12, Top = y, AutoSize = true });
             _LblTuned = new Label { Left = 160, Top = y, AutoSize = true, Font = new Font("Consolas", 9f) };
             grpStat.Controls.Add(_LblTuned);
             y += 24;
-            grpStat.Controls.Add(new Label { Text = "Service ID :", Left = 12, Top = y, AutoSize = true });
+            grpStat.Controls.Add(new Label { Text = "Service ID:", Left = 12, Top = y, AutoSize = true });
             _LblService = new Label { Left = 160, Top = y, AutoSize = true, Font = new Font("Consolas", 9f) };
             grpStat.Controls.Add(_LblService);
             y += 24;
-            grpStat.Controls.Add(new Label { Text = "PMT PID :", Left = 12, Top = y, AutoSize = true });
+            grpStat.Controls.Add(new Label { Text = "PMT PID:", Left = 12, Top = y, AutoSize = true });
             _LblPmt = new Label { Left = 160, Top = y, AutoSize = true, Font = new Font("Consolas", 9f) };
             grpStat.Controls.Add(_LblPmt);
             y += 24;
-            grpStat.Controls.Add(new Label { Text = "Interface web :", Left = 12, Top = y, AutoSize = true });
+            grpStat.Controls.Add(new Label { Text = "Web interface:", Left = 12, Top = y, AutoSize = true });
             _LnkWeb = new LinkLabel { Left = 160, Top = y, AutoSize = true };
             _LnkWeb.LinkClicked += (s, e) => { try { Process.Start(_LnkWeb.Text); } catch { } };
             grpStat.Controls.Add(_LnkWeb);
             p.Controls.Add(grpStat);
 
             var grpAct = new GroupBox { Text = "Actions", Left = 8, Top = 176, Width = 440, Height = 110 };
-            var bRec = new Button { Text = "Reconnecter", Left = 12, Top = 24, Width = 160, Height = 28 };
+            var bRec = new Button { Text = "Reconnect", Left = 12, Top = 24, Width = 160, Height = 28 };
             bRec.Click += (s, e) =>
             {
                 try { MdApi.Plugin.Adapter?.Tune(-1, -1, -1, -1); } catch { }
@@ -259,14 +259,14 @@ namespace dvbapiNet.DvbViewer
             };
             grpAct.Controls.Add(bRec);
 
-            var bLogs = new Button { Text = "Ouvrir dossier logs", Left = 180, Top = 24, Width = 180, Height = 28 };
+            var bLogs = new Button { Text = "Open logs folder", Left = 180, Top = 24, Width = 180, Height = 28 };
             bLogs.Click += (s, e) =>
             {
                 try { Process.Start("explorer.exe", Globals.HomeDirectory.FullName); } catch { }
             };
             grpAct.Controls.Add(bLogs);
 
-            var bClear = new Button { Text = "Vider le log", Left = 12, Top = 60, Width = 160, Height = 28 };
+            var bClear = new Button { Text = "Clear log", Left = 12, Top = 60, Width = 160, Height = 28 };
             bClear.Click += (s, e) =>
             {
                 try
@@ -278,7 +278,7 @@ namespace dvbapiNet.DvbViewer
             };
             grpAct.Controls.Add(bClear);
 
-            var bDiag = new Button { Text = "Collecter diagnostic…", Left = 180, Top = 60, Width = 180, Height = 28 };
+            var bDiag = new Button { Text = "Collect diagnostic…", Left = 180, Top = 60, Width = 180, Height = 28 };
             bDiag.Click += (s, e) => CollectDiagnostic();
             grpAct.Controls.Add(bDiag);
 
@@ -327,12 +327,12 @@ namespace dvbapiNet.DvbViewer
                 }
 
                 System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + zipPath + "\"");
-                _LblStatus.Text = "Diagnostic exporté : " + Path.GetFileName(zipPath);
+                _LblStatus.Text = "Diagnostic exported: " + Path.GetFileName(zipPath);
                 _LblStatus.ForeColor = Color.DarkGreen;
             }
             catch (Exception ex)
             {
-                _LblStatus.Text = "Erreur diag : " + ex.Message;
+                _LblStatus.Text = "Diag error: " + ex.Message;
                 _LblStatus.ForeColor = Color.DarkRed;
             }
         }
@@ -361,12 +361,12 @@ namespace dvbapiNet.DvbViewer
                     }
                 }
                 System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + csvPath + "\"");
-                _LblStatus.Text = "CSV exporté : " + Path.GetFileName(csvPath);
+                _LblStatus.Text = "CSV exported: " + Path.GetFileName(csvPath);
                 _LblStatus.ForeColor = Color.DarkGreen;
             }
             catch (Exception ex)
             {
-                _LblStatus.Text = "Erreur export : " + ex.Message;
+                _LblStatus.Text = "Export error: " + ex.Message;
                 _LblStatus.ForeColor = Color.DarkRed;
             }
         }
@@ -402,25 +402,25 @@ namespace dvbapiNet.DvbViewer
 
         private void BuildDebugTab(TabPage p)
         {
-            var grpStats = new GroupBox { Text = "Statistiques décryptage", Left = 8, Top = 8, Width = 440, Height = 130 };
+            var grpStats = new GroupBox { Text = "Decryption statistics", Left = 8, Top = 8, Width = 440, Height = 130 };
             int y = 22;
-            grpStats.Controls.Add(new Label { Text = "CW total :", Left = 12, Top = y, AutoSize = true });
+            grpStats.Controls.Add(new Label { Text = "CW total:", Left = 12, Top = y, AutoSize = true });
             _LblCwTotal = new Label { Left = 130, Top = y, AutoSize = true, Font = new Font("Consolas", 9f) };
             grpStats.Controls.Add(_LblCwTotal);
 
-            grpStats.Controls.Add(new Label { Text = "Even / Odd :", Left = 230, Top = y, AutoSize = true });
+            grpStats.Controls.Add(new Label { Text = "Even / Odd:", Left = 230, Top = y, AutoSize = true });
             _LblCwEven = new Label { Left = 305, Top = y, AutoSize = true, Font = new Font("Consolas", 9f), ForeColor = Color.SteelBlue };
             _LblCwOdd = new Label { Left = 365, Top = y, AutoSize = true, Font = new Font("Consolas", 9f), ForeColor = Color.DarkOrange };
             grpStats.Controls.Add(_LblCwEven);
             grpStats.Controls.Add(_LblCwOdd);
 
             y += 26;
-            grpStats.Controls.Add(new Label { Text = "ECM total :", Left = 12, Top = y, AutoSize = true });
+            grpStats.Controls.Add(new Label { Text = "ECM total:", Left = 12, Top = y, AutoSize = true });
             _LblEcmTotal = new Label { Left = 130, Top = y, AutoSize = true, Font = new Font("Consolas", 9f) };
             grpStats.Controls.Add(_LblEcmTotal);
 
             y += 26;
-            grpStats.Controls.Add(new Label { Text = "Latence (last/avg/max) :", Left = 12, Top = y, AutoSize = true });
+            grpStats.Controls.Add(new Label { Text = "Latency (last/avg/max):", Left = 12, Top = y, AutoSize = true });
             _LblLat = new Label { Left = 150, Top = y, AutoSize = true, Font = new Font("Consolas", 9f) };
             grpStats.Controls.Add(_LblLat);
 
@@ -428,12 +428,12 @@ namespace dvbapiNet.DvbViewer
             var bReset = new Button { Text = "Reset stats", Left = 12, Top = y, Width = 120, Height = 26 };
             bReset.Click += (s, ev) => { try { Oscam.DecryptionMonitor.Instance.Reset(); RefreshStatus(null, null); } catch { } };
             grpStats.Controls.Add(bReset);
-            var bExport = new Button { Text = "Exporter CSV…", Left = 140, Top = y, Width = 130, Height = 26 };
+            var bExport = new Button { Text = "Export CSV…", Left = 140, Top = y, Width = 130, Height = 26 };
             bExport.Click += (s, ev) => ExportCsv();
             grpStats.Controls.Add(bExport);
             p.Controls.Add(grpStats);
 
-            var grpEcm = new GroupBox { Text = "ECM récentes (les plus récentes en haut)", Left = 8, Top = 144, Width = 440, Height = 200 };
+            var grpEcm = new GroupBox { Text = "Recent ECMs (newest on top)", Left = 8, Top = 144, Width = 440, Height = 200 };
             _LstEcm = new ListView
             {
                 Left = 8,
@@ -445,12 +445,12 @@ namespace dvbapiNet.DvbViewer
                 GridLines = true,
                 Font = new Font("Consolas", 8f)
             };
-            _LstEcm.Columns.Add("Heure", 70);
+            _LstEcm.Columns.Add("Time", 70);
             _LstEcm.Columns.Add("CAID", 60);
             _LstEcm.Columns.Add("PID", 60);
             _LstEcm.Columns.Add("Lat.", 50);
             _LstEcm.Columns.Add("Reader", 90);
-            _LstEcm.Columns.Add("Protocole", 80);
+            _LstEcm.Columns.Add("Protocol", 80);
             grpEcm.Controls.Add(_LstEcm);
             p.Controls.Add(grpEcm);
         }
@@ -490,7 +490,7 @@ namespace dvbapiNet.DvbViewer
 
             var lblDesc = new Label
             {
-                Text = "Plugin de décryptage DVB pour DVBViewer / MDAPI\nvia serveur Oscam (dvbapi).",
+                Text = "DVB decryption plugin for DVBViewer / MDAPI\nvia Oscam server (dvbapi).",
                 Left = 16,
                 Top = 130,
                 Width = 360,
@@ -500,7 +500,7 @@ namespace dvbapiNet.DvbViewer
 
             var lblCfg = new Label
             {
-                Text = "Fichier config :",
+                Text = "Config file:",
                 Left = 16,
                 Top = 200,
                 AutoSize = true,
@@ -524,7 +524,7 @@ namespace dvbapiNet.DvbViewer
             {
                 var lblUpd = new Label
                 {
-                    Text = "★ Mise à jour disponible : " + upd.TagName,
+                    Text = "★ Update available: " + upd.TagName,
                     Left = 16,
                     Top = 260,
                     AutoSize = true,
@@ -565,12 +565,12 @@ namespace dvbapiNet.DvbViewer
                 bool tuned = a != null && a.IsTuned;
                 if (_LblConn != null)
                 {
-                    _LblConn.Text = conn ? "Connecté" : "Déconnecté";
+                    _LblConn.Text = conn ? "Connected" : "Disconnected";
                     _LblConn.ForeColor = conn ? Color.Green : Color.Red;
                 }
                 if (_LblTuned != null)
                 {
-                    _LblTuned.Text = tuned ? "Oui" : "Non";
+                    _LblTuned.Text = tuned ? "Yes" : "No";
                     _LblTuned.ForeColor = tuned ? Color.Green : Color.Gray;
                 }
                 if (_LblService != null) _LblService.Text = (a?.CurrentService ?? 0).ToString();
@@ -586,7 +586,7 @@ namespace dvbapiNet.DvbViewer
                     }
                     else
                     {
-                        _LnkWeb.Text = "(non démarré)";
+                        _LnkWeb.Text = "(not started)";
                         _LnkWeb.LinkArea = new LinkArea(0, 0);
                     }
                 }
@@ -661,16 +661,16 @@ namespace dvbapiNet.DvbViewer
         private void BtnOk_Click(object sender, EventArgs e)
         {
             if (!int.TryParse(_TxtPort.Text.Trim(), out int port) || port < 1 || port > 65535)
-            { _LblStatus.Text = "Port Oscam invalide."; return; }
+            { _LblStatus.Text = "Invalid Oscam port."; return; }
             if (!int.TryParse(_TxtOffset.Text.Trim(), out int offset) || offset < 0 || offset > 128)
-            { _LblStatus.Text = "Offset invalide (0-128)."; return; }
+            { _LblStatus.Text = "Invalid offset (0-128)."; return; }
             if (!int.TryParse(_TxtDebug.Text.Trim(), out int debug) || debug < 0)
-            { _LblStatus.Text = "Niveau debug invalide."; return; }
+            { _LblStatus.Text = "Invalid debug level."; return; }
             if (!int.TryParse(_TxtWebPort.Text.Trim(), out int webPort) || webPort < 1 || webPort > 65535)
-            { _LblStatus.Text = "Port web invalide."; return; }
+            { _LblStatus.Text = "Invalid web port."; return; }
             string host = _TxtHost.Text.Trim();
             if (string.IsNullOrEmpty(host))
-            { _LblStatus.Text = "Serveur invalide."; return; }
+            { _LblStatus.Text = "Invalid server."; return; }
 
             try
             {
@@ -696,7 +696,7 @@ namespace dvbapiNet.DvbViewer
             }
             catch (Exception ex)
             {
-                _LblStatus.Text = "Erreur sauvegarde : " + ex.Message;
+                _LblStatus.Text = "Save error: " + ex.Message;
             }
         }
 
