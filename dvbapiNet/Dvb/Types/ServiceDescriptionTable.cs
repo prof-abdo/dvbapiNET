@@ -62,6 +62,34 @@ namespace dvbapiNet.Dvb.Types
             }
         }
 
+        /// <summary>
+        /// Die im SDT-Eintrag enthaltenen Descriptoren, z.B. der Service Descriptor (0x48)
+        /// mit Programm- und Anbietername.
+        /// </summary>
+        public IList<DescriptorBase> Descriptors
+        {
+            get
+            {
+                return _Descs;
+            }
+        }
+
+        /// <summary>
+        /// Liefert den ersten Descriptor des angegebenen Typs oder null.
+        /// </summary>
+        /// <typeparam name="T">Gesuchter Descriptortyp</typeparam>
+        /// <returns>Descriptor oder null, wenn nicht vorhanden</returns>
+        public T FindDescriptor<T>() where T : DescriptorBase
+        {
+            foreach (DescriptorBase d in _Descs)
+            {
+                if (d is T)
+                    return (T)d;
+            }
+
+            return null;
+        }
+
         public ServiceDescriptionTable(byte[] data, int offset)
         {
             _Descs = new List<DescriptorBase>();

@@ -67,10 +67,21 @@ namespace dvbapiNet.DvbViewer
                     else if (a.HasDvbApiClient) st = TrayState.Idle;
                 }
 
+                // Tooltip bei jedem Durchlauf aktualisieren, damit der Kanalname mitläuft.
+                // NotifyIcon.Text ist auf 63 Zeichen begrenzt.
+                string tip = "dvbapiNET — " + StateLabel(st);
+
+                if (st == TrayState.Tuned && a != null && !string.IsNullOrEmpty(a.CurrentServiceName))
+                    tip = a.CurrentServiceName + " — " + StateLabel(st);
+
+                if (tip.Length > 63)
+                    tip = tip.Substring(0, 63);
+
+                try { _Icon.Text = tip; } catch { }
+
                 if (st != _LastState)
                 {
                     _Icon.Icon = MakeIcon(StateColor(st));
-                    _Icon.Text = "dvbapiNET — " + StateLabel(st);
 
                     // notification on state transitions (with throttle)
                     if (_LastState != TrayState.Unknown)

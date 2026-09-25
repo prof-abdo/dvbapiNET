@@ -177,10 +177,14 @@ namespace dvbapiNet
                     else if (d != null && d.IsTuned) a = d;
                 }
                 var snap = dvbapiNet.Oscam.DecryptionMonitor.Instance.GetSnapshot();
+                string name = (a?.CurrentServiceName ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"");
+                string provider = (a?.CurrentProviderName ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"");
                 string json =
                     "{\"connected\":" + (a != null && a.HasDvbApiClient ? "true" : "false") +
                     ",\"tuned\":" + (a != null && a.IsTuned ? "true" : "false") +
                     ",\"sid\":" + (a?.CurrentService ?? 0) +
+                    ",\"name\":\"" + name + "\"" +
+                    ",\"provider\":\"" + provider + "\"" +
                     ",\"pmt_pid\":" + (a?.CurrentPmtPid ?? 0) +
                     ",\"cw_total\":" + snap.CwTotal +
                     ",\"ecm_total\":" + snap.EcmTotal +

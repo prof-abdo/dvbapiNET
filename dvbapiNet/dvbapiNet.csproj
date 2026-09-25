@@ -116,6 +116,8 @@
     <Compile Include="Dvb\Descriptors\DescriptorBase.cs" />
     <Compile Include="Dvb\Descriptors\DescriptorFactory.cs" />
     <Compile Include="Dvb\Descriptors\DescriptorTag.cs" />
+    <Compile Include="Dvb\Descriptors\ServiceDescriptor.cs" />
+    <Compile Include="Dvb\DvbText.cs" />
     <Compile Include="Dvb\SdtSection.cs" />
     <Compile Include="Dvb\Types\ElementaryStream.cs" />
     <Compile Include="Dvb\Types\ProgramAssociation.cs" />

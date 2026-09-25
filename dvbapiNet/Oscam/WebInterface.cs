@@ -382,6 +382,8 @@ namespace dvbapiNet.Oscam
             int pmt = a?.CurrentPmtPid ?? 0;
             int tsid = a?.CurrentTransponder ?? 0;
             int nid = a?.CurrentNetwork ?? 0;
+            string name = JsonEscape(a?.CurrentServiceName ?? "");
+            string provider = JsonEscape(a?.CurrentProviderName ?? "");
             string ver = Globals.Info?.Replace("\"", "\\\"") ?? "";
 
             return "{" +
@@ -389,6 +391,8 @@ namespace dvbapiNet.Oscam
                 "\"connected\":" + (connected ? "true" : "false") + "," +
                 "\"tuned\":" + (tuned ? "true" : "false") + "," +
                 "\"sid\":" + sid + "," +
+                "\"name\":\"" + name + "\"," +
+                "\"provider\":\"" + provider + "\"," +
                 "\"pmt_pid\":" + pmt + "," +
                 "\"ts_id\":" + tsid + "," +
                 "\"network_id\":" + nid +
@@ -405,6 +409,8 @@ namespace dvbapiNet.Oscam
             int tsid = a?.CurrentTransponder ?? 0;
             int nid = a?.CurrentNetwork ?? 0;
             string ver = Globals.Info ?? "";
+            string chanName = WebEscape(a?.CurrentServiceName ?? "");
+            string chanProvider = WebEscape(a?.CurrentProviderName ?? "");
 
             string okCls(bool b) => b ? "ok" : "ko";
             string okTxt(bool b) => b ? "YES" : "NO";
@@ -464,6 +470,7 @@ td{padding:5px 6px;border-bottom:1px solid #2d2d2d}
 <div class='row'><span class='label'>Version</span><span class='value'>" + ver + @"</span></div>
 <div class='row'><span class='label'>Connected to Oscam</span><span class='value " + okCls(connected) + "'>" + okTxt(connected) + @"</span></div>
 <div class='row'><span class='label'>Channel tuned</span><span class='value " + okCls(tuned) + "'>" + okTxt(tuned) + @"</span></div>
+<div class='row'><span class='label'>Channel</span><span class='value'>" + (chanName.Length > 0 ? chanName : "—") + (chanProvider.Length > 0 ? " &middot; " + chanProvider : "") + @"</span></div>
 <div class='row'><span class='label'>Service ID</span><span class='value'>" + sid + @"</span></div>
 <div class='row'><span class='label'>PMT PID</span><span class='value'>0x" + pmt.ToString("X4") + @"</span></div>
 <div class='row'><span class='label'>Transport Stream</span><span class='value'>" + tsid + @"</span></div>

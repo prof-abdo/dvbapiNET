@@ -28,7 +28,7 @@ using System.Runtime.InteropServices;
 //      Buildnummer
 //      Revision
 //
-[assembly: AssemblyVersion("2.3.2.*")]
+[assembly: AssemblyVersion("2.4.0.*")]
 
 // Die Test-Assembly greift auf interne Typen zu (SectionCrc, WebInterface-Helfer,
 // UpdateChecker-Vergleich). Ohne strong name, daher genügt der einfache Assemblyname.

@@ -40,7 +40,21 @@ namespace dvbapiNet.Dvb.Descriptors
         {
             _DescTag = (DescriptorTag)data[0 + offset];
 
-            _Data = new byte[data[offset + 1]];
+            int declared = data[offset + 1];
+
+            // Gegen abgeschnittene Daten absichern. SectionBase prüft die Vollständigkeit
+            // einer Section, nicht ob das Längenbyte jedes Descriptors in den Section-Loop
+            // passt. Ein zu großes Längenbyte würde sonst Array.Copy zum Werfen bringen und
+            // damit das komplette Parsing der Section abbrechen.
+            int available = data.Length - offset - 2;
+
+            if (declared > available)
+                declared = available;
+
+            if (declared < 0)
+                declared = 0;
+
+            _Data = new byte[declared];
             Array.Copy(data, offset + 2, _Data, 0, _Data.Length);
         }
 

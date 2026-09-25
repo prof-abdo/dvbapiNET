@@ -19,6 +19,8 @@
             {
                 case DescriptorTag.ConditionalAccess:
                     return new CaDescriptor(data, offset);
+                case DescriptorTag.ServiceDescriptor:
+                    return new ServiceDescriptor(data, offset);
                 // TODO: bei Bedarf weitere Descriptoren hier einfügen
                 default:
                     return new DescriptorBase(data, offset);

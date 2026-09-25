@@ -209,7 +209,7 @@ Open <http://127.0.0.1:8080/> — auto-refreshes every 5 s.
 
 | Endpoint | Description |
 |---|---|
-| `GET /api/status` | Connection state, tuned channel, SID, PID |
+| `GET /api/status` | Connection state, tuned channel name/provider, SID, PID |
 | `GET /api/decrypt/stats` | CW + ECM counters, latency, CW cache stats |
 | `GET /api/ecm/recent` | Last 100 ECMs |
 | `GET /api/ecm/latency-history` | Minute-by-minute latency buckets (60 min) |
@@ -285,10 +285,22 @@ Requires .NET SDK (any recent version) — tests reference the pre-built DLL fro
 
 ## Roadmap
 
-### v2.4 (planned)
+### v2.4 (in progress)
+* **Channel names from the SDT** — the service name and provider parsed from the SDT are now
+  surfaced in the web UI, the tray tooltip, the MQTT payload and `/api/status`. The data was
+  already being parsed on every tune but discarded.
 * Multi-language UI (FR / EN / DE) via centralized `Message` enum
 * More tests covering `DecryptionMonitor` and `OscamDiscovery`
 * Polish / bug fixes based on community feedback
+
+### Known limitations
+* The per-channel heatmap (`/api/heatmap/channels`) still reports bare service IDs. Resolving
+  them to names needs a SID→name history, since the adapter only knows the name of the
+  channel currently tuned.
+* `DvbCsa` / `DvbAltCsa` have no test coverage — both P/Invoke `FFDecsa.dll`, which is not
+  distributed with the plugin.
+* Under MDAPI the configuration dialog thread is started lazily, but the ProgDVB menu entry
+  still opens the *DVBViewer* dialog path, which instantiates a second `DvbApiAdapter`.
 
 ## License
 

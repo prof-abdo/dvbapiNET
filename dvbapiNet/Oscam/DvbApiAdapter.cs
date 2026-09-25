@@ -1,5 +1,7 @@
 ﻿using dvbapiNet.Dvb;
 using dvbapiNet.Dvb.Crypto;
+using dvbapiNet.Dvb.Descriptors;
+using dvbapiNet.Dvb.Types;
 using dvbapiNet.Log;
 using dvbapiNet.Log.Locale;
 using dvbapiNet.Oscam.InterCom;
@@ -49,6 +51,8 @@ namespace dvbapiNet.Oscam
         private int _PmtPid;
         private int _NetworkId;
         private int _TransportStreamId;
+        private string _ServiceName;
+        private string _ProviderName;
 
         private PatSection _TmpPat;
         private PmtSection _TmpPmt;
@@ -133,6 +137,58 @@ namespace dvbapiNet.Oscam
                     return _PmtPid;
 
                 return -1;
+            }
+        }
+
+        /// <summary>
+        /// Name des aktuell getunten Programms aus dem SDT, z.B. "ZDF HD".
+        /// Leer, solange der SDT noch nicht empfangen wurde.
+        /// </summary>
+        public string CurrentServiceName
+        {
+            get
+            {
+                return _ServiceName ?? "";
+            }
+        }
+
+        /// <summary>
+        /// Anbieter des aktuell getunten Programms aus dem SDT, z.B. "ZDF".
+        /// Leer, solange der SDT noch nicht empfangen wurde.
+        /// </summary>
+        public string CurrentProviderName
+        {
+            get
+            {
+                return _ProviderName ?? "";
+            }
+        }
+
+        /// <summary>
+        /// Ermittelt Programm- und Anbieternamen für die aktuelle Service-ID aus dem SDT.
+        /// </summary>
+        private void UpdateServiceNames()
+        {
+            _ServiceName = null;
+            _ProviderName = null;
+
+            if (_Sdt == null || _ServiceId <= 0)
+                return;
+
+            foreach (ServiceDescriptionTable sdt in _Sdt)
+            {
+                if (sdt.ServiceId != _ServiceId)
+                    continue;
+
+                ServiceDescriptor sd = sdt.FindDescriptor<ServiceDescriptor>();
+
+                if (sd == null)
+                    return;
+
+                _ServiceName = sd.ServiceName;
+                _ProviderName = sd.ProviderName;
+
+                return;
             }
         }
 
@@ -335,6 +391,8 @@ namespace dvbapiNet.Oscam
                 _TmpPmt = null;
                 _TmpPat = null;
                 _TmpSdt = null;
+                _ServiceName = null;
+                _ProviderName = null;
 
                 try
                 {
@@ -760,6 +818,9 @@ namespace dvbapiNet.Oscam
                 {
                     _Sdt = _TmpSdt;
                     _TmpSdt = null;
+
+                    // Programm- und Anbieternamen aus dem SDT übernehmen
+                    UpdateServiceNames();
 
                     if (_TransportStreamId != -1 && _TransportStreamId != 0xffff)
                     {
