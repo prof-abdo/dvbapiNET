@@ -124,7 +124,7 @@ namespace dvbapiNet.Oscam
         /// Bewusst als reine Funktion ohne Zugriff auf <see cref="Globals"/> gehalten, damit sie
         /// ohne die Seiteneffekte des Globals-Initialisierers testbar bleibt.
         /// </summary>
-        internal static bool IsNewerThanCurrent(string tagName, Version local)
+        public static bool IsNewerThanCurrent(string tagName, Version local)
         {
             // tag like "v2.1.0" or "2.1.0". Reihenfolge ist wichtig: erst Whitespace
             // entfernen, sonst bleibt ein führendes "v" nach dem TrimStart stehen.

@@ -1,9 +1,9 @@
-ï»¿namespace dvbapiNet.Dvb
+namespace dvbapiNet.Dvb
 {
     /// <summary>
     /// CRC Checksummen-Berechnung
     /// </summary>
-    internal static class SectionCrc
+    public static class SectionCrc
     {
         private const uint cCrc32Poly = 0x04C11DB7;
         private static uint[] _CrcTable = new uint[256];
@@ -30,11 +30,11 @@
         }
 
         /// <summary>
-        /// CRC32 Checksummen Berechnung mit GegenprÃ¼fung
+        /// CRC32 Checksummen Berechnung mit Gegenprüfung
         /// </summary>
         /// <param name="data">ByteArray des Befehls</param>
-        /// <param name="len">LÃ¤nge der zu berÃ¼cksichtigen Bytes</param>
-        /// <param name="crc">CRC zur GegenprÃ¼fung</param>
+        /// <param name="len">Länge der zu berücksichtigen Bytes</param>
+        /// <param name="crc">CRC zur Gegenprüfung</param>
         /// <returns>Bool true wenn CRC stimmt</returns>
         public static bool Compare(byte[] data, int len, uint crc)
         {
@@ -47,7 +47,7 @@
         /// CRC32 Checksummen Berechnung
         /// </summary>
         /// <param name="data">ByteArray des Befehls</param>
-        /// <param name="len">LÃ¤nge der zu berÃ¼cksichtigen Bytes</param>
+        /// <param name="len">Länge der zu berücksichtigen Bytes</param>
         /// <returns>4 byte CRC Checksumme</returns>
         public static byte[] Compute(byte[] data, int len)
         {
@@ -67,7 +67,7 @@
         /// CRC32 Checksummen Berechnung
         /// </summary>
         /// <param name="data">ByteArray des Befehls</param>
-        /// <param name="len">LÃ¤nge der zu berÃ¼cksichtigen Bytes</param>
+        /// <param name="len">Länge der zu berücksichtigen Bytes</param>
         /// <returns>4 byte CRC Checksumme</returns>
         public static uint ComputeInt(byte[] data, int len)
         {

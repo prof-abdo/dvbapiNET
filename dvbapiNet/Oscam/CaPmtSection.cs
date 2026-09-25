@@ -1,4 +1,4 @@
-ï»¿using dvbapiNet.Dvb;
+using dvbapiNet.Dvb;
 using dvbapiNet.Dvb.Descriptors;
 using dvbapiNet.Dvb.Types;
 using dvbapiNet.Oscam.Descriptors;
@@ -8,7 +8,7 @@ using System.Net;
 namespace dvbapiNet.Oscam
 {
     /// <summary>
-    /// CaPMT fÃ¼r Oscam - EnthÃ¤lt alle nÃ¶tigen Informationen damit Oscam die EntschlÃ¼sselung einleiten kann
+    /// CaPMT für Oscam - Enthält alle nötigen Informationen damit Oscam die Entschlüsselung einleiten kann
     /// </summary>
     public class CaPmtSection
     {
@@ -40,16 +40,16 @@ namespace dvbapiNet.Oscam
         }
 
         /// <summary>
-        /// Erzeugt den AOT_CA_PMT-Header inklusive der LÃ¤ngenangabe nach ASN.1 (EN 50221 S.11).
+        /// Erzeugt den AOT_CA_PMT-Header inklusive der Längenangabe nach ASN.1 (EN 50221 S.11).
         /// </summary>
         /// <param name="cmd">DvbApiCommand.AotCaPmt</param>
-        /// <param name="len">LÃ¤nge der CaPMT, die hinter dem Header folgt</param>
+        /// <param name="len">Länge der CaPMT, die hinter dem Header folgt</param>
         /// <returns>Headerbytes, unmittelbar gefolgt von den <paramref name="len"/> Payload-Bytes</returns>
-        internal static byte[] BuildHeader(int cmd, int len)
+        public static byte[] BuildHeader(int cmd, int len)
         {
             byte[] header;
 
-            // LÃ¤ngengenerierung nach ASN.1:
+            // Längengenerierung nach ASN.1:
             if (len < 128)
             {
                 header = new byte[4];
@@ -85,8 +85,8 @@ namespace dvbapiNet.Oscam
         }
 
         /// <summary>
-        /// Erstellt die CaPMT fÃ¼r den Versand an Oscam.
-        /// Header und LÃ¤nge (nach ASN.1, EN 50221 S.11) mÃ¼ssen noch vorangestellt werden!
+        /// Erstellt die CaPMT für den Versand an Oscam.
+        /// Header und Länge (nach ASN.1, EN 50221 S.11) müssen noch vorangestellt werden!
         /// </summary>
         public byte[] Create()
         {
@@ -117,7 +117,7 @@ namespace dvbapiNet.Oscam
                     piMs.WriteByte(1);
 
                     // Inject Oscam specific Descriptors:
-                    // "bug" in oscam? oscam prÃ¼ft bei capmt update auch enigma namespace, aktualisiert selbst vorher Ã¼ber PAT aber die ts-id.
+                    // "bug" in oscam? oscam prüft bei capmt update auch enigma namespace, aktualisiert selbst vorher über PAT aber die ts-id.
                     // dadurch unterschiede in den IDs.
                     (new EnigmaNamespace(_Nid, _TsId)).Write(piMs);
                     (new AdapterDevice(_Adapter)).Write(piMs);

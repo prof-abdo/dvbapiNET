@@ -280,7 +280,7 @@ namespace dvbapiNet.Oscam
         /// Für die Anzeige werden nur Schema/Host/Port und ein gekürzter Pfad-Anfang
         /// ausgegeben, damit das Secret nicht über /api/config ausgeleitet werden kann.
         /// </summary>
-        internal static string RedactUrl(string url)
+        public static string RedactUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
                 return "";
@@ -329,7 +329,7 @@ namespace dvbapiNet.Oscam
         /// <summary>
         /// Prüft ob die HTTP-Header durch die leere Zeile (CRLFCRLF) abgeschlossen sind.
         /// </summary>
-        internal static bool HasHeaderEnd(byte[] buf, int len)
+        public static bool HasHeaderEnd(byte[] buf, int len)
         {
             for (int i = 3; i < len; i++)
             {

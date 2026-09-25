@@ -29,7 +29,3 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 [assembly: AssemblyVersion("2.4.0.*")]
-
-// Die Test-Assembly greift auf interne Typen zu (SectionCrc, WebInterface-Helfer,
-// UpdateChecker-Vergleich). Ohne strong name, daher genügt der einfache Assemblyname.
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("dvbapiNet.Tests")]

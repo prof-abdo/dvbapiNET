@@ -13,7 +13,14 @@ namespace dvbapiNet.Tests
     /// </summary>
     public class CaPmtSectionTests
     {
-        private static int Cmd() => unchecked((int)DvbApiCommand.AotCaPmt);
+        /// <summary>
+        /// AotCaPmt als Wire-Wert, bewusst als Literal und nicht ueber das interne
+        /// DvbApiCommand-Enum: so pinnt der Test den tatsaechlichen Opcode unabhaengig
+        /// davon, ob jemand das Enum aendert.
+        /// </summary>
+        private const int cAotCaPmt = unchecked((int)0x9F803200);
+
+        private static int Cmd() => cAotCaPmt;
 
         [Theory]
         [InlineData(0, 4)]
