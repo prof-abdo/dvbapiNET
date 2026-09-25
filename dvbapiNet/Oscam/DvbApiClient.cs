@@ -134,6 +134,23 @@ namespace dvbapiNet.Oscam
         }
 
         /// <summary>
+        /// Erzwingt eine sofortige Neuverbindung zu Oscam, ohne den Backoff zu berücksichtigen.
+        /// Der WatchConnection-Thread stellt die Verbindung im nächsten Durchlauf wieder her und
+        /// sendet danach über SendCaPmtList() alle weiterhin getunten Kanäle erneut.
+        /// </summary>
+        public void ForceReconnect()
+        {
+            if (!_IsRunning)
+                return;
+
+            Reset();
+
+            // Reset() wertet den Abbruch als fehlgeschlagenen Versuch und erhöht den Backoff.
+            // Bei einer bewusst ausgelösten Neuverbindung soll dieser aber nicht greifen.
+            _ReconnectStrategy.Reset();
+        }
+
+        /// <summary>
         /// Ajoute un serveur de secours pour le failover. Tried after the primary on connection failure.
         /// </summary>
         public void AddBackupServer(string host, int port)
@@ -718,38 +735,7 @@ namespace dvbapiNet.Oscam
                 if (!_IsConnected)
                     return;
 
-                byte[] header;
-                // Längengenerierung nach ASN.1:
-                if (len < 128)
-                {
-                    header = new byte[4];
-                    header[3] = (byte)len;
-                }
-                else if (len < 256)
-                {
-                    header = new byte[5];
-                    header[3] = 0x81;
-                    header[4] = (byte)len;
-                }
-                else if (len < 65536)
-                {
-                    header = new byte[6];
-                    header[3] = 0x82;
-                    header[4] = (byte)(len >> 8);
-                    header[5] = (byte)(len);
-                }
-                else // bis 16MiB
-                {
-                    header = new byte[7];
-                    header[3] = 0x83;
-                    header[4] = (byte)(len >> 16);
-                    header[5] = (byte)(len >> 8);
-                    header[6] = (byte)(len);
-                }
-
-                header[0] = (byte)(cmd >> 24);
-                header[1] = (byte)(cmd >> 16);
-                header[2] = (byte)(cmd >> 8);
+                byte[] header = CaPmtSection.BuildHeader(cmd, len);
 
                 ms.Write(header, 0, header.Length);
                 ms.Write(data, 0, data.Length);
@@ -827,11 +813,9 @@ namespace dvbapiNet.Oscam
 
             if (_ServerInfo == null && !force)
             {
-                // Pas de ServerInfo encore - buffer la commande si importante
-                if (!force)
-                {
-                    _PendingCommands.Enqueue(data, force);
-                }
+                // Noch keine ServerInfo von Oscam - Befehl puffern, wird nach dem
+                // Handshake über ResendPendingCommands() nachgeschoben.
+                _PendingCommands.Enqueue(data, force);
                 return;
             }
 

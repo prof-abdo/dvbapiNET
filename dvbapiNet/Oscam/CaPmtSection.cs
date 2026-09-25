@@ -40,6 +40,51 @@ namespace dvbapiNet.Oscam
         }
 
         /// <summary>
+        /// Erzeugt den AOT_CA_PMT-Header inklusive der Längenangabe nach ASN.1 (EN 50221 S.11).
+        /// </summary>
+        /// <param name="cmd">DvbApiCommand.AotCaPmt</param>
+        /// <param name="len">Länge der CaPMT, die hinter dem Header folgt</param>
+        /// <returns>Headerbytes, unmittelbar gefolgt von den <paramref name="len"/> Payload-Bytes</returns>
+        internal static byte[] BuildHeader(int cmd, int len)
+        {
+            byte[] header;
+
+            // Längengenerierung nach ASN.1:
+            if (len < 128)
+            {
+                header = new byte[4];
+                header[3] = (byte)len;
+            }
+            else if (len < 256)
+            {
+                header = new byte[5];
+                header[3] = 0x81;
+                header[4] = (byte)len;
+            }
+            else if (len < 65536)
+            {
+                header = new byte[6];
+                header[3] = 0x82;
+                header[4] = (byte)(len >> 8);
+                header[5] = (byte)len;
+            }
+            else // bis 16MiB
+            {
+                header = new byte[7];
+                header[3] = 0x83;
+                header[4] = (byte)(len >> 16);
+                header[5] = (byte)(len >> 8);
+                header[6] = (byte)len;
+            }
+
+            header[0] = (byte)(cmd >> 24);
+            header[1] = (byte)(cmd >> 16);
+            header[2] = (byte)(cmd >> 8);
+
+            return header;
+        }
+
+        /// <summary>
         /// Erstellt die CaPMT für den Versand an Oscam.
         /// Header und Länge (nach ASN.1, EN 50221 S.11) müssen noch vorangestellt werden!
         /// </summary>

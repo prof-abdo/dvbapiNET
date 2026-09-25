@@ -17,6 +17,7 @@ namespace dvbapiNet.Oscam
     public class WebInterface : IDisposable
     {
         private const string cLogSection = "webui";
+        private const int cMaxRequestBytes = 8192;
         private TcpListener _listener;
         private Thread _thread;
         private volatile bool _running;
@@ -72,11 +73,25 @@ namespace dvbapiNet.Oscam
                 using (NetworkStream stream = client.GetStream())
                 {
                     stream.ReadTimeout = 3000;
-                    byte[] buf = new byte[2048];
-                    int n = stream.Read(buf, 0, buf.Length);
-                    if (n <= 0) return;
+                    byte[] buf = new byte[cMaxRequestBytes];
+                    int total = 0;
 
-                    string req = Encoding.ASCII.GetString(buf, 0, n);
+                    // A single Read can return a partial request when the headers span several
+                    // TCP segments. Truncating there drops the Authorization header and causes
+                    // spurious 401s, so keep reading until the blank line ends the headers.
+                    while (total < buf.Length)
+                    {
+                        int n = stream.Read(buf, total, buf.Length - total);
+                        if (n <= 0) break;
+
+                        total += n;
+
+                        if (HasHeaderEnd(buf, total)) break;
+                    }
+
+                    if (total <= 0) return;
+
+                    string req = Encoding.ASCII.GetString(buf, 0, total);
                     string path = ExtractPath(req);
 
                     // HTTP Basic Auth if configured
@@ -256,8 +271,37 @@ namespace dvbapiNet.Oscam
                 "\"pretty\":" + (pretty ? "true" : "false") + "," +
                 "\"streamdump\":" + (dump ? "true" : "false") + "," +
                 "\"web_port\":" + webPort + "," +
-                "\"webhook_url\":\"" + JsonEscape(whUrl) + "\"" +
+                "\"webhook_url\":\"" + JsonEscape(RedactUrl(whUrl)) + "\"" +
                 "}";
+        }
+
+        /// <summary>
+        /// Webhook-URLs enthalten üblicherweise ein Secret (Pfad oder Query-Parameter).
+        /// Für die Anzeige werden nur Schema/Host/Port und ein gekürzter Pfad-Anfang
+        /// ausgegeben, damit das Secret nicht über /api/config ausgeleitet werden kann.
+        /// </summary>
+        internal static string RedactUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return "";
+
+            try
+            {
+                var u = new Uri(url);
+
+                string path = u.AbsolutePath ?? "/";
+                if (path.Length > 6)
+                    path = path.Substring(0, 6) + "...";
+
+                return u.Scheme + "://" + u.Host
+                    + (u.IsDefaultPort ? "" : ":" + u.Port)
+                    + path
+                    + (u.Query.Length > 0 ? "?<redacted>" : "");
+            }
+            catch
+            {
+                return "<redacted>";
+            }
         }
 
         private static string ReadLogTail(int n)
@@ -282,6 +326,21 @@ namespace dvbapiNet.Oscam
             catch (Exception ex) { return "ERROR: " + ex.Message; }
         }
 
+        /// <summary>
+        /// Prüft ob die HTTP-Header durch die leere Zeile (CRLFCRLF) abgeschlossen sind.
+        /// </summary>
+        internal static bool HasHeaderEnd(byte[] buf, int len)
+        {
+            for (int i = 3; i < len; i++)
+            {
+                if (buf[i - 3] == (byte)'\r' && buf[i - 2] == (byte)'\n'
+                    && buf[i - 1] == (byte)'\r' && buf[i] == (byte)'\n')
+                    return true;
+            }
+
+            return false;
+        }
+
         private static string ExtractPath(string req)
         {
             int sp1 = req.IndexOf(' ');
@@ -304,7 +363,14 @@ namespace dvbapiNet.Oscam
 
         private static void TriggerReconnect()
         {
-            try { GetAdapter()?.Tune(-1, -1, -1, -1); } catch { }
+            try
+            {
+                // Verbindung zu Oscam neu aufbauen. Der Adapter bleibt getunt, damit nach dem
+                // Handshake die CaPMT-Liste erneut gesendet wird und der Kanal ohne Nutzeraktion
+                // weiterläuft - ein Untune würde die Liste leeren und nichts nachschieben.
+                GetAdapter()?.ApiClient?.ForceReconnect();
+            }
+            catch { }
         }
 
         private static string BuildJson()

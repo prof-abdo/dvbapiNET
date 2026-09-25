@@ -28,6 +28,7 @@ namespace dvbapiNet.DvbViewer
         private static WndProcDelegate _WndProcDelegate;
         private static System.Threading.AutoResetEvent _ConfigureSignal = new System.Threading.AutoResetEvent(false);
         private static System.Threading.Thread _ConfigureThread;
+        private static readonly object _ConfigureThreadLock = new object();
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         public delegate byte TransponderCallback(IntPtr buf, int len);
@@ -87,6 +88,29 @@ namespace dvbapiNet.DvbViewer
 
             try { System.Windows.Forms.Application.Run(); }
             catch (Exception ex) { LogProvider.Exception(cLogSection, Message.DvbvEventFailed, ex); }
+        }
+
+        /// <summary>
+        /// Startet den STA-Thread für die Dialoganzeige, falls dieser noch nicht läuft.
+        /// Nötig für DVBViewer (SetAppHandle) genauso wie für MDAPI - ProgDVB ruft
+        /// SetAppHandle nie auf, sondern löst den Dialog über On_Menu_Select aus.
+        /// </summary>
+        private static void EnsureConfigureThread()
+        {
+            lock (_ConfigureThreadLock)
+            {
+                if (_ConfigureThread != null)
+                    return;
+
+                _ConfigureThread = new System.Threading.Thread(ConfigureThreadProc)
+                {
+                    IsBackground = true,
+                    Name = "dvbapiNetCfg"
+                };
+
+                _ConfigureThread.SetApartmentState(System.Threading.ApartmentState.STA);
+                _ConfigureThread.Start();
+            }
         }
 
         public static void OpenConfig()
@@ -244,9 +268,7 @@ namespace dvbapiNet.DvbViewer
                 _WndProcDelegate = PluginWndProc;
                 _OldWndProc = SetWindowLong(wnd, -4, Marshal.GetFunctionPointerForDelegate(_WndProcDelegate));
 
-                _ConfigureThread = new System.Threading.Thread(ConfigureThreadProc) { IsBackground = true, Name = "dvbapiNetCfg" };
-                _ConfigureThread.SetApartmentState(System.Threading.ApartmentState.STA);
-                _ConfigureThread.Start();
+                EnsureConfigureThread();
             }
         }
 
@@ -257,6 +279,10 @@ namespace dvbapiNet.DvbViewer
         [DllExport(ExportName = "Configure", CallingConvention = CallingConvention.StdCall)]
         public static void Configure(IntPtr hwndParent)
         {
+            // Der Signal-Thread läuft unter DVBViewer bereits ab SetAppHandle, unter MDAPI
+            // jedoch nie - deshalb hier sicherstellen, bevor das Signal gesetzt wird.
+            EnsureConfigureThread();
+
             _ConfigureSignal.Set();
         }
 
