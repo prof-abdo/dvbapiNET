@@ -11,11 +11,23 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+
+    # The default workflow token is read-only. Without this, the release step fails with
+    # "Resource not accessible by integration" as soon as it tries to generate release
+    # notes or upload the DLL asset.
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
       - name: Restore NuGet packages
         run: nuget restore dvbapi.net.sln
@@ -31,27 +43,19 @@ jobs:
       - name: Build (Release x86)
         run: msbuild dvbapi.net.sln /p:Configuration=Release /p:Platform=x86 /t:dvbapiNet /v:minimal
 
-      # Uses MSBuild's VSTest target rather than "dotnet test". The test project is
-      # net481 + x86 and references a prebuilt DLL produced by the step above, which
-      # is the same shape as the plugin project. /restore pulls the PackageReference
-      # items - the test project is not part of dvbapi.net.sln, so the nuget restore
-      # above does not cover it.
-      #
-      # TEMPORARY: continue-on-error. This step currently fails for a tooling reason
-      # that is not yet diagnosed, and it was gating the release for v2.3.2/v2.4.0.
-      # Building and publishing a release does not depend on the suite passing, so
-      # the two are decoupled. Remove this once the step is fixed - until then a red
-      # test result here will NOT show up in the job status.
+      # "dotnet test", not msbuild /t:VSTest: the VSTest target does not exist on this
+      # SDK-style project (MSB4057). The test project is not in dvbapi.net.sln, so it
+      # is referenced directly and restores its own PackageReference items.
       - name: Test (Release x86)
         continue-on-error: true
-        run: msbuild dvbapiNet.Tests/dvbapiNet.Tests.csproj /restore /t:VSTest /p:Configuration=Release /p:Platform=x86 /p:VSTestLogger=trx /v:minimal
+        run: dotnet test dvbapiNet.Tests/dvbapiNet.Tests.csproj -c Release -p:Platform=x86 --logger "trx;LogFileName=tests.trx"
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: dvbapiNet.Tests/bin/x86/Release/*.trx
+          path: dvbapiNet.Tests/**/tests.trx
           if-no-files-found: ignore
 
       - name: Upload DLL artifact
