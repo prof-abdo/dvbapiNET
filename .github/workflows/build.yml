@@ -20,6 +20,14 @@ jobs:
       - name: Restore NuGet packages
         run: nuget restore dvbapi.net.sln
 
+      # DllExport is not a PackageReference and is not covered by the restore above, but
+      # packages/ is gitignored so it is absent on a fresh checkout. Without it the
+      # csproj's ImportGroup is skipped, DllExportModImported stays != 'true' and the
+      # project falls back to running "DllExport.bat -action Restore", whose wizard then
+      # aborts with "We can't find any .sln file" and takes the whole build down.
+      - name: Restore DllExport package
+        run: nuget install DllExport -Version 1.7.0-beta -OutputDirectory packages -Pre -NonInteractive
+
       - name: Build (Release x86)
         run: msbuild dvbapi.net.sln /p:Configuration=Release /p:Platform=x86 /t:dvbapiNet /v:minimal
 
