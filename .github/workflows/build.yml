@@ -47,7 +47,6 @@ jobs:
       # SDK-style project (MSB4057). The test project is not in dvbapi.net.sln, so it
       # is referenced directly and restores its own PackageReference items.
       - name: Test (Release x86)
-        continue-on-error: true
         run: dotnet test dvbapiNet.Tests/dvbapiNet.Tests.csproj -c Release -p:Platform=x86 --logger "trx;LogFileName=tests.trx"
 
       - name: Upload test results
