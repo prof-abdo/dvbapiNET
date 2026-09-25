@@ -72,14 +72,84 @@ The DLL is generated in `dvbapiNet\bin\x86\Release\dvbapiNet.dll`.
 
 ## Installation
 
+The same `dvbapiNet.dll` serves both host applications. Pick the section that matches your
+viewer — only the plugin folder differs, the configuration is shared.
+
+### Runtime dependency: FFDecsa.dll
+
+The plugin calls into a native helper for DVB descrambling:
+
+```
+FFDecsa.dll   (32-bit, x86)
+```
+
+It must sit **next to `dvbapiNet.dll`** in the plugin folder. It is not bundled with the
+release — obtain it from the upstream FFDecsa project and match the architecture (x86).
+
+When you need it, and when you don't:
+
+| Situation | FFDecsa.dll required? |
+|---|---|
+| DVBViewer, DVB-CSA mode (the normal case) | **yes** |
+| DVBViewer, iCAM/VideoGuard 64-bit CWs (alt CSA) | **yes** |
+| DVBViewer, DES or AES-128 mode | no — those are pure C# |
+| ProgDVB / MDAPI | no — the host descrambles, the plugin only forwards control words |
+
+**If it is missing, decryption fails silently.** The plugin logs an exception, leaves its
+algorithm unset, and every subsequent descramble call quietly does nothing — the picture
+stays scrambled with no error shown to the user. If a DVBViewer channel will not decrypt
+even though ECMs are arriving, check this first. See *Verifying an install* below.
+
+### DVBViewer
+
 1. Close DVBViewer.
 2. Copy `dvbapiNet.dll` to `C:\Program Files (x86)\DVBViewer\Plugins\`.
 3. Start DVBViewer.
 4. Open `Plugins → dvbapiNet` and configure the Oscam server.
 
+### ProgDVB / MDAPI
+
+ProgDVB loads plugins through the **MDAPI** interface, which the same DLL also implements.
+There is no separate build and no extra dependency.
+
+1. Close ProgDVB.
+2. Copy `dvbapiNet.dll` into your host's MDAPI plugin folder — normally a `Plugins`
+   subfolder next to the `ProgDVB.exe` / `MDAPI.exe` executable
+   (e.g. `C:\Program Files\ProgDVB\Plugins\` or `C:\Program Files\MDAPI\Plugins\`).
+   Use the folder your host actually scans; ProgDVB installations differ.
+3. Start ProgDVB. The plugin registers itself and adds a **`dvbapiNET`** entry to the
+   host's plugin menu.
+4. Configure the Oscam server, then tune an encrypted channel. Look for repeated
+   `MDAPI SetDcw` lines in the log — each one is a control word handed to the host.
+
+> **Known issue — the ProgDVB menu entry does not open the dialog.** The menu item is
+> created by `SetMenuHandle`, but the thread that listens for the click is only started
+> from DVBViewer's `SetAppHandle` export, which MDAPI hosts never call. The click is
+> therefore a silent no-op. Until this is fixed, open the configuration dialog from the
+> **system tray icon** instead (enable it with `[ui] tray=1`, the default), or edit
+> `%ProgramData%\dvbapiNET\dvbapiNET.ini` by hand.
+
+Requirements and behaviour:
+
+* The host process must be named `ProgDVB` or `MDAPI`. The plugin inspects the process name
+  at startup to decide packet handling; any other name logs
+  `Unknown host application, using 184 byte mode` and will not decrypt.
+* Under MDAPI the plugin does **not** descramble the stream itself. It requests the PIDs it
+  needs, forwards filtered sections to Oscam, and passes the returned control words back to
+  the host via the MDAPI `DvbSetDescr` command — the host does the descrambling.
+* 188-byte TS packets are always assumed on ProgDVB. On `MDAPI` they require version
+  **0.9.0.1615** or newer; older builds fall back to 184-byte packets and no keep-alive.
+* Up to **64 PID filters** are managed per host process.
+* If the plugin log reports that a DVBAPI client was already running, that is normal when
+  more than one host (or a second viewer instance) is active — only the first one opens the
+  connection to Oscam and the others act as demux instances over a named pipe.
+
 ## Configuration
 
 File: `%ProgramData%\dvbapiNET\dvbapiNET.ini`
+
+This path is **shared by both hosts** and is created on first run. It is *not* read from
+next to the DLL, so a single config applies no matter which viewer you start.
 
 ```ini
 [dvbapi]
@@ -90,6 +160,8 @@ servers=192.168.1.10:633,192.168.1.11:633
 offset=0
 
 [log]
+# Bitmask, not a level: 1=Error 2=Warning 4=Info 8=EcmInfo 16=DvbApi 32=PluginEvent 1024=CW
+# Combine with "+". 0 = no logging at all. 31 is a good setting for troubleshooting.
 debug=0
 pretty=1
 
@@ -149,6 +221,58 @@ Open <http://127.0.0.1:8080/> — auto-refreshes every 5 s.
 | `GET /api/log/tail?n=200` | Last N log lines |
 | `GET /api/reconnect` | Force a reconnection |
 | `GET /api/decrypt/reset` | Reset counters |
+
+## Logs & Troubleshooting
+
+The plugin keeps its own log, separate from the host application's:
+
+```
+%ProgramData%\dvbapiNET\dvbapiNET.log
+```
+
+It rotates automatically at 5 MB and keeps 3 rotated files. The *Debug* tab of the
+configuration dialog and `GET /api/log/tail?n=200` both read this same file.
+
+> **Nothing is logged by default.** `[log] debug` defaults to `0`, and every log call is
+> filtered against it. Set it before following the checklist below.
+
+`debug` is a **bitmask**, not a severity level:
+
+| Value | Enables |
+|---|---|
+| `1` | `Error` |
+| `2` | `Warning` |
+| `4` | `Info` |
+| `8` | `EcmInfo` (per-ECM blocks) |
+| `16` | `DvbApi` (connect/handshake tracing) |
+| `32` | `DvbViewerPluginEvent` |
+| `128`–`512` | Intercom socket traffic |
+| `1024` | `ControlWord` |
+| `32768` | adds hex dumps |
+
+Combine with `+`. `debug=31` (= 1+2+4+8+16) is the useful setting for verifying an install;
+`debug=1` is enough to just catch failures.
+
+### Verifying an install
+
+With `debug=31`, restart the host and check in order:
+
+1. `Connecting to OScam dvbapi server...` then `Connected` — the TCP link to the dvbapi
+   port is up.
+2. `Server: <name>, protocol: <n>` — Oscam accepted the client handshake.
+3. Tune an encrypted channel and look for the `ECM INFO` block (`Service ID`, `Caid`,
+   `Reader`, `Time: <n>ms`). A plausible `Time` means Oscam is genuinely decrypting.
+4. Confirm control words arrive. DVBViewer descrambles in-plugin; under MDAPI you should
+   instead see repeated `MDAPI SetDcw` lines as each CW is handed to the host.
+
+If step 1 never appears, check `server`/`port` in the INI and that Oscam's dvbapi listener
+is enabled. If steps 1-3 work but the picture stays scrambled:
+
+1. **Check for `FFDecsa.dll` next to `dvbapiNet.dll`** — a missing or wrong-architecture copy
+   is the most common cause. With `debug=1` it shows up as a load failure in the
+   `descrambler` section.
+2. On MDAPI, confirm the host version is 0.9.0.1615+; older builds cannot apply the
+   control words the plugin hands them.
 
 ## Testing
 
